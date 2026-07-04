@@ -2,7 +2,7 @@
    Braize design system: Windows 95/98 chrome, Hack Club colors.
    --------------------------------------------------------------- */
 
-@import url('https://fonts.googleapis.com/css2?family=VT323&family=Jersey+10&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
 :root {
   /* win95 grays */
@@ -24,7 +24,7 @@
   --hc-blue: #338eda;
   --hc-purple: #a633d6;
 
-  --font-display: 'Jersey 10', 'VT323', monospace;
+  --font-display: 'VT323', monospace;
   --font-body: Tahoma, Verdana, Geneva, sans-serif;
 }
 
@@ -47,14 +47,29 @@ body {
 }
 
 h1, h2, h3 {
-  font-family: var(--font-display);
-  letter-spacing: 0.5px;
   margin: 0 0 0.4em;
 }
 
-h1 { font-size: 3rem; }
-h2 { font-size: 2.2rem; }
-h3 { font-size: 1.6rem; }
+/* VT323 only ships one weight, so h1 stays unbold to avoid synthetic
+   faux-bold (which makes pixel fonts look mushy). h2/h3 use the real
+   bold face of the body font instead, matching authentic Win95 chrome. */
+h1 {
+  font-family: var(--font-display);
+  font-weight: normal;
+  letter-spacing: 1px;
+  line-height: 1.05;
+  font-size: clamp(2.4rem, 6vw + 1rem, 3.6rem);
+  text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.15);
+}
+
+h2, h3 {
+  font-family: var(--font-body);
+  font-weight: bold;
+  letter-spacing: 0;
+}
+
+h2 { font-size: clamp(1.5rem, 3vw + 1rem, 2rem); }
+h3 { font-size: clamp(1.15rem, 2vw + 0.7rem, 1.35rem); }
 
 p {
   line-height: 1.5;
@@ -108,6 +123,12 @@ a {
 .window {
   background: var(--win-face);
   padding: 3px;
+  box-shadow:
+    inset -1px -1px var(--win-dark-shadow),
+    inset 1px 1px var(--win-light-highlight),
+    inset -2px -2px var(--win-shadow),
+    inset 2px 2px var(--win-highlight),
+    6px 6px 0 rgba(0, 0, 0, 0.35);
 }
 
 .title-bar {
@@ -120,8 +141,8 @@ a {
 }
 
 .title-bar-text {
-  font-family: var(--font-display);
-  font-size: 1.3rem;
+  font-family: var(--font-body);
+  font-size: 1rem;
   font-weight: bold;
   white-space: nowrap;
   overflow: hidden;
@@ -187,17 +208,58 @@ a {
   cursor: wait;
 }
 
+.tab-strip a.active {
+  background: var(--win-face);
+  box-shadow:
+    inset -1px -1px var(--win-dark-shadow),
+    inset 1px 1px var(--win-light-highlight);
+  font-weight: bold;
+}
+
 /* ---------------------------------------------------------------
    address bar
    --------------------------------------------------------------- */
+
+.address-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 4px 0;
+}
+
+.nav-btn {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  background: var(--win-face);
+  border: none;
+  font-size: 0.9rem;
+  box-shadow:
+    inset -1px -1px var(--win-dark-shadow),
+    inset 1px 1px var(--win-light-highlight),
+    inset -2px -2px var(--win-shadow),
+    inset 2px 2px var(--win-highlight);
+  cursor: not-allowed;
+}
 
 .address-bar {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 6px 4px 0;
+  flex: 1;
   padding: 5px 8px;
   background: #fff;
+  min-width: 0;
+}
+
+.status-bar {
+  margin: 6px 4px 0;
+  padding: 3px 8px;
+  font-size: 0.8rem;
+  color: var(--win-shadow);
+  box-shadow:
+    inset 1px 1px var(--win-dark-shadow),
+    inset -1px -1px var(--win-light-highlight);
 }
 
 .address-bar .label {
@@ -281,6 +343,21 @@ a {
   box-shadow:
     inset -1px -1px var(--win-shadow),
     inset 1px 1px var(--win-dark-shadow);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow:
+    inset -1px -1px var(--win-shadow),
+    inset 1px 1px var(--win-dark-shadow),
+    3px 3px 0 rgba(0, 0, 0, 0.25);
+}
+
+.card .card-icon {
+  font-size: 1.6rem;
+  display: block;
+  margin-bottom: 4px;
 }
 
 .card h3 {

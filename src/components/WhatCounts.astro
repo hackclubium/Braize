@@ -1,6 +1,7 @@
 ---
 const items = [
   {
+    icon: '\u{1F310}',
     title: 'A Browser',
     body: 'Build one from scratch. Rendering engine, tabs, the whole thing.',
     example: {
@@ -10,14 +11,17 @@ const items = [
     },
   },
   {
+    icon: '\u{1F9E9}',
     title: 'A Browser Extension',
     body: 'A tab hoarder intervention. A dark-mode-everything injector. Anything that lives in the toolbar.',
   },
   {
+    icon: '\u{1F43E}',
     title: 'A Browsing Buddy',
     body: 'A desktop pet that judges your open tabs. A sidebar copilot. Something that keeps you company while you browse.',
   },
   {
+    icon: '❓',
     title: 'Something Weirder',
     body: "If it touches browsing in any way, it probably counts. Not sure? Ask in Slack.",
   },
@@ -27,6 +31,7 @@ const items = [
 <div class="card-grid">
   {items.map((item) => (
     <div class="card">
+      <span class="card-icon" aria-hidden="true">{item.icon}</span>
       <h3>{item.title}</h3>
       <p>{item.body}</p>
       {item.example && (
