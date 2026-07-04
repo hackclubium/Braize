@@ -1,0 +1,117 @@
+---
+const tabs = [
+  { href: '#about', label: 'About' },
+  { href: '#what-counts', label: 'What Counts' },
+  { href: '#how-it-works', label: 'How It Works' },
+  { href: '#prize', label: 'Prize + FAQ' },
+];
+---
+
+<div class="window hero-window">
+  <div class="title-bar" style="--title-color: var(--hc-red); --title-color-2: var(--hc-orange);">
+    <div class="title-bar-text">
+      <span aria-hidden="true">&#128193;</span> Braize.exe
+    </div>
+    <div class="title-bar-controls">
+      <button type="button" aria-label="Minimize">&#95;</button>
+      <button type="button" aria-label="Maximize">&#9633;</button>
+      <button type="button" class="close-btn" aria-label="Close" id="close-btn">&#10005;</button>
+    </div>
+  </div>
+
+  <nav class="tab-strip" aria-label="Section navigation">
+    {tabs.map((tab) => <a href={tab.href}>{tab.label}</a>)}
+  </nav>
+
+  <div class="address-bar bevel-in">
+    <span class="label">Address:</span>
+    <span class="typed" id="typed-text"></span><span class="caret"></span>
+  </div>
+
+  <div class="window-body hero-body">
+    <h1>Ship anything browser-related.</h1>
+    <p class="hero-sub">
+      Braize is a Hack Club YSWS. Build a browser, an extension, a browsing
+      buddy, or whatever "browsing" means to you. Ship it, and we'll ship you
+      something back.
+    </p>
+    <div class="hero-actions">
+      <!-- PLACEHOLDER: update submission link -->
+      <a class="btn btn-accent" href="https://airtable.com/PLACEHOLDER" target="_blank" rel="noopener">Submit Your Project</a>
+      <a class="btn" href="#how-it-works">See How It Works</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  const phrases = [
+    'a browser...',
+    'a browser extension...',
+    'a browsing buddy...',
+    'literally anything with "browse" in it...',
+  ];
+
+  const el = document.getElementById('typed-text');
+
+  if (el) {
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let deleting = false;
+
+    const tick = () => {
+      const phrase = phrases[phraseIndex];
+
+      if (!deleting) {
+        charIndex++;
+        el.textContent = phrase.slice(0, charIndex);
+        if (charIndex === phrase.length) {
+          deleting = true;
+          setTimeout(tick, 1400);
+          return;
+        }
+      } else {
+        charIndex--;
+        el.textContent = phrase.slice(0, charIndex);
+        if (charIndex === 0) {
+          deleting = false;
+          phraseIndex = (phraseIndex + 1) % phrases.length;
+        }
+      }
+
+      setTimeout(tick, deleting ? 40 : 70);
+    };
+
+    tick();
+  }
+
+  const closeBtn = document.getElementById('close-btn');
+  closeBtn?.addEventListener('click', () => {
+    closeBtn.classList.remove('wobble');
+    // restart animation
+    void closeBtn.offsetWidth;
+    closeBtn.classList.add('wobble');
+  });
+</script>
+
+<style>
+  .hero-window {
+    margin-top: 24px;
+  }
+
+  .hero-body {
+    text-align: center;
+    padding: 40px 20px 32px;
+  }
+
+  .hero-sub {
+    max-width: 560px;
+    margin: 0 auto 20px;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+</style>

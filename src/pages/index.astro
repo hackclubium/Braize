@@ -1,0 +1,46 @@
+---
+import Layout from '../layouts/Layout.astro';
+import BrowserWindow from '../components/BrowserWindow.astro';
+import Panel from '../components/Panel.astro';
+import WhatCounts from '../components/WhatCounts.astro';
+import Timeline from '../components/Timeline.astro';
+import PrizeFaq from '../components/PrizeFaq.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout
+  title="Braize - a Hack Club YSWS"
+  description="Ship anything browser-related and get rewarded. A Hack Club YSWS."
+>
+  <main class="page">
+    <BrowserWindow />
+
+    <Panel id="about" title="About Braize" icon="ℹ️" color="var(--hc-blue)" color2="var(--hc-cyan)">
+      <p>
+        Braize is a Hack Club YSWS, short for "You Ship, We Ship." You build
+        something, ship it publicly, and if it clears the bar, Hack Club ships
+        you a reward for real.
+      </p>
+      <p>
+        The theme this time is loose on purpose: anything related to
+        browsing. That could mean a full browser built from scratch, a small
+        extension, a weird desktop buddy, or something nobody's thought of
+        yet.
+      </p>
+    </Panel>
+
+    <Panel id="what-counts" title="What Counts" icon="✅" color="var(--hc-green)" color2="var(--hc-cyan)">
+      <WhatCounts />
+    </Panel>
+
+    <Panel id="how-it-works" title="How It Works" icon="⚙️" color="var(--hc-orange)" color2="var(--hc-yellow)">
+      <Timeline />
+    </Panel>
+
+    <Panel id="prize" title="Prize + FAQ" icon="\u{1F381}" color="var(--hc-purple)" color2="var(--hc-red)">
+      <PrizeFaq />
+    </Panel>
+
+    <Footer />
+  </main>
+</Layout>

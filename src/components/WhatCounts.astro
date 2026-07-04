@@ -1,0 +1,40 @@
+---
+const items = [
+  {
+    title: 'A Browser',
+    body: 'Build one from scratch. Rendering engine, tabs, the whole thing.',
+    example: {
+      label: 'Vertex',
+      href: 'https://github.com/hackclubium/Vertex',
+      blurb: 'a fully from-scratch web browser, written in C++',
+    },
+  },
+  {
+    title: 'A Browser Extension',
+    body: 'A tab hoarder intervention. A dark-mode-everything injector. Anything that lives in the toolbar.',
+  },
+  {
+    title: 'A Browsing Buddy',
+    body: 'A desktop pet that judges your open tabs. A sidebar copilot. Something that keeps you company while you browse.',
+  },
+  {
+    title: 'Something Weirder',
+    body: "If it touches browsing in any way, it probably counts. Not sure? Ask in Slack.",
+  },
+];
+---
+
+<div class="card-grid">
+  {items.map((item) => (
+    <div class="card">
+      <h3>{item.title}</h3>
+      <p>{item.body}</p>
+      {item.example && (
+        <p>
+          Example: <a href={item.example.href} target="_blank" rel="noopener">{item.example.label}</a>,
+          {' '}{item.example.blurb}.
+        </p>
+      )}
+    </div>
+  ))}
+</div>

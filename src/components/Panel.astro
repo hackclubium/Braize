@@ -1,0 +1,27 @@
+---
+interface Props {
+  id: string;
+  title: string;
+  icon?: string;
+  color?: string;
+  color2?: string;
+}
+
+const { id, title, icon = '\u{1F4C4}', color = 'var(--hc-blue)', color2 = 'var(--hc-cyan)' } = Astro.props;
+---
+
+<section id={id} class="panel window">
+  <div class="title-bar" style={`--title-color: ${color}; --title-color-2: ${color2};`}>
+    <div class="title-bar-text">
+      <span aria-hidden="true">{icon}</span> {title}
+    </div>
+    <div class="title-bar-controls">
+      <button type="button" aria-label="Minimize">&#95;</button>
+      <button type="button" aria-label="Maximize">&#9633;</button>
+      <button type="button" aria-label="Close">&#10005;</button>
+    </div>
+  </div>
+  <div class="window-body">
+    <slot />
+  </div>
+</section>

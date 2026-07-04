@@ -1,0 +1,417 @@
+/* ---------------------------------------------------------------
+   Braize design system: Windows 95/98 chrome, Hack Club colors.
+   --------------------------------------------------------------- */
+
+@import url('https://fonts.googleapis.com/css2?family=VT323&family=Jersey+10&display=swap');
+
+:root {
+  /* win95 grays */
+  --win-face: #c0c0c0;
+  --win-face-dark: #a8a8a8;
+  --win-shadow: #808080;
+  --win-dark-shadow: #000000;
+  --win-highlight: #dfdfdf;
+  --win-light-highlight: #ffffff;
+  --win-text: #000000;
+  --win-desktop: #008080;
+
+  /* hack club brights, used on title bars / accents instead of navy */
+  --hc-red: #ec3750;
+  --hc-orange: #ff8c37;
+  --hc-yellow: #f1c40f;
+  --hc-green: #33d6a6;
+  --hc-cyan: #5bc0de;
+  --hc-blue: #338eda;
+  --hc-purple: #a633d6;
+
+  --font-display: 'Jersey 10', 'VT323', monospace;
+  --font-body: Tahoma, Verdana, Geneva, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 16px;
+  color: var(--win-text);
+  background: var(--win-desktop);
+  background-image:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.03) 0 2px, transparent 2px 40px);
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  letter-spacing: 0.5px;
+  margin: 0 0 0.4em;
+}
+
+h1 { font-size: 3rem; }
+h2 { font-size: 2.2rem; }
+h3 { font-size: 1.6rem; }
+
+p {
+  line-height: 1.5;
+}
+
+a {
+  color: var(--hc-blue);
+}
+
+::-webkit-scrollbar {
+  width: 18px;
+  height: 18px;
+}
+::-webkit-scrollbar-track {
+  background: var(--win-face);
+  box-shadow: inset 1px 1px var(--win-shadow);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--win-face);
+  box-shadow:
+    inset -1px -1px var(--win-dark-shadow),
+    inset 1px 1px var(--win-light-highlight),
+    inset -2px -2px var(--win-shadow),
+    inset 2px 2px var(--win-highlight);
+}
+
+/* ---------------------------------------------------------------
+   bevel helpers
+   --------------------------------------------------------------- */
+
+.bevel-out {
+  box-shadow:
+    inset -1px -1px var(--win-dark-shadow),
+    inset 1px 1px var(--win-light-highlight),
+    inset -2px -2px var(--win-shadow),
+    inset 2px 2px var(--win-highlight);
+}
+
+.bevel-in {
+  box-shadow:
+    inset 1px 1px var(--win-dark-shadow),
+    inset -1px -1px var(--win-light-highlight),
+    inset 2px 2px var(--win-shadow),
+    inset -2px -2px var(--win-highlight);
+}
+
+/* ---------------------------------------------------------------
+   window chrome
+   --------------------------------------------------------------- */
+
+.window {
+  background: var(--win-face);
+  padding: 3px;
+}
+
+.title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 4px;
+  background: linear-gradient(90deg, var(--title-color, var(--hc-blue)), var(--title-color-2, var(--hc-purple)));
+  color: #fff;
+}
+
+.title-bar-text {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.title-bar-controls {
+  display: flex;
+  gap: 3px;
+}
+
+.title-bar-controls button {
+  width: 20px;
+  height: 18px;
+  background: var(--win-face);
+  border: none;
+  font-family: 'Marlett', var(--font-body);
+  font-size: 11px;
+  line-height: 1;
+  cursor: default;
+}
+
+.title-bar-controls button.close-btn:active,
+.title-bar-controls button.close-btn.wobble {
+  animation: wobble 0.4s ease;
+}
+
+.window-body {
+  padding: 16px;
+  background: var(--win-face);
+}
+
+/* ---------------------------------------------------------------
+   tab strip (also section nav)
+   --------------------------------------------------------------- */
+
+.tab-strip {
+  display: flex;
+  gap: 2px;
+  padding: 4px 4px 0;
+  background: var(--win-face);
+  overflow-x: auto;
+}
+
+.tab-strip a {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--win-text);
+  text-decoration: none;
+  padding: 6px 14px 5px;
+  background: var(--win-face-dark);
+  box-shadow:
+    inset -1px -1px var(--win-dark-shadow),
+    inset 1px 1px var(--win-light-highlight);
+  white-space: nowrap;
+}
+
+.tab-strip a:hover {
+  background: var(--win-face);
+  cursor: wait;
+}
+
+/* ---------------------------------------------------------------
+   address bar
+   --------------------------------------------------------------- */
+
+.address-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 4px 0;
+  padding: 5px 8px;
+  background: #fff;
+}
+
+.address-bar .label {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--win-shadow);
+}
+
+.address-bar .typed {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+}
+
+.address-bar .caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  background: var(--win-text);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: blink 1s steps(1) infinite;
+}
+
+/* ---------------------------------------------------------------
+   buttons
+   --------------------------------------------------------------- */
+
+.btn {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: bold;
+  padding: 8px 18px;
+  background: var(--win-face);
+  color: var(--win-text);
+  text-decoration: none;
+  box-shadow:
+    inset -1px -1px var(--win-dark-shadow),
+    inset 1px 1px var(--win-light-highlight),
+    inset -2px -2px var(--win-shadow),
+    inset 2px 2px var(--win-highlight);
+  cursor: wait;
+}
+
+.btn:active {
+  box-shadow:
+    inset 1px 1px var(--win-dark-shadow),
+    inset -1px -1px var(--win-light-highlight),
+    inset 2px 2px var(--win-shadow),
+    inset -2px -2px var(--win-highlight);
+}
+
+.btn-accent {
+  background: var(--hc-yellow);
+}
+
+/* ---------------------------------------------------------------
+   layout sections
+   --------------------------------------------------------------- */
+
+.page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 16px 60px;
+}
+
+.panel {
+  margin-bottom: 28px;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.card {
+  background: #fff;
+  padding: 14px;
+  box-shadow:
+    inset -1px -1px var(--win-shadow),
+    inset 1px 1px var(--win-dark-shadow);
+}
+
+.card h3 {
+  font-size: 1.3rem;
+  margin-bottom: 6px;
+}
+
+.card a {
+  font-size: 0.85rem;
+}
+
+/* ---------------------------------------------------------------
+   timeline
+   --------------------------------------------------------------- */
+
+.timeline {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  counter-reset: step;
+}
+
+.timeline li {
+  counter-increment: step;
+  position: relative;
+  padding: 10px 10px 10px 54px;
+  margin-bottom: 10px;
+  background: #fff;
+  box-shadow:
+    inset -1px -1px var(--win-shadow),
+    inset 1px 1px var(--win-dark-shadow);
+}
+
+.timeline li::before {
+  content: counter(step);
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  background: var(--hc-green);
+  box-shadow:
+    inset -1px -1px var(--win-dark-shadow),
+    inset 1px 1px var(--win-light-highlight);
+}
+
+/* ---------------------------------------------------------------
+   faq
+   --------------------------------------------------------------- */
+
+.faq-item {
+  background: #fff;
+  margin-bottom: 8px;
+  box-shadow:
+    inset -1px -1px var(--win-shadow),
+    inset 1px 1px var(--win-dark-shadow);
+}
+
+.faq-item summary {
+  padding: 10px 12px;
+  cursor: wait;
+  font-weight: bold;
+  list-style: none;
+}
+
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-item summary::before {
+  content: '+ ';
+  color: var(--hc-red);
+}
+
+.faq-item[open] summary::before {
+  content: '\2212 ';
+}
+
+.faq-item .faq-answer {
+  padding: 0 12px 12px;
+}
+
+/* ---------------------------------------------------------------
+   footer
+   --------------------------------------------------------------- */
+
+.site-footer {
+  text-align: center;
+  padding: 20px 16px;
+  font-size: 0.85rem;
+  color: #fff;
+}
+
+.site-footer a {
+  color: var(--hc-yellow);
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+/* ---------------------------------------------------------------
+   animations
+   --------------------------------------------------------------- */
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+@keyframes wobble {
+  0%, 100% { transform: translateX(0) rotate(0); }
+  20% { transform: translateX(-2px) rotate(-3deg); }
+  40% { transform: translateX(2px) rotate(3deg); }
+  60% { transform: translateX(-1px) rotate(-2deg); }
+  80% { transform: translateX(1px) rotate(2deg); }
+}
+
+.placeholder-note {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: var(--hc-red);
+  font-family: var(--font-body);
+}

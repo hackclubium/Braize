@@ -1,0 +1,42 @@
+---
+const faqs = [
+  {
+    q: 'What counts as "browser-related"?',
+    a: 'Anything that involves browsing: a browser, an extension, a browsing buddy, or something weirder. See the What Counts section above.',
+  },
+  {
+    q: 'Do I need experience building browser engines?',
+    a: "No. Start from wherever you are. A simple project that actually ships beats an ambitious one that doesn't.",
+  },
+  {
+    q: 'What language should I use?',
+    a: 'Any language you want. C++ and Rust are common for real browser engines, but extensions and browsing buddies can be built in anything.',
+  },
+  {
+    q: "What's the deadline?",
+    a: 'PLACEHOLDER: submissions close August 31st. Update this once the real date is set.',
+  },
+  {
+    q: 'How do I submit?',
+    a: 'Use the Submit Your Project button above. PLACEHOLDER: swap in the real submission form link.',
+  },
+];
+---
+
+<div class="prize-block">
+  <p>
+    <!-- PLACEHOLDER: update prize copy -->
+    Ship a project that meets the bar, and we'll send you a high-quality
+    wireless mouse. Because you'll be doing a lot of browsing.
+  </p>
+  <span class="placeholder-note">Prize details are a placeholder, final reward TBD.</span>
+</div>
+
+<div class="faq-list">
+  {faqs.map((item) => (
+    <details class="faq-item">
+      <summary>{item.q}</summary>
+      <p class="faq-answer">{item.a}</p>
+    </details>
+  ))}
+</div>
