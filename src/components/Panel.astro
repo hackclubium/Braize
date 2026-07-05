@@ -1,4 +1,6 @@
 ---
+import PixelIcon from './PixelIcon.astro';
+
 interface Props {
   id: string;
   title: string;
@@ -7,13 +9,13 @@ interface Props {
   color2?: string;
 }
 
-const { id, title, icon = '\u{1F4C4}', color = 'var(--hc-blue)', color2 = 'var(--hc-cyan)' } = Astro.props;
+const { id, title, icon = 'folder', color = 'var(--hc-blue)', color2 = 'var(--hc-cyan)' } = Astro.props;
 ---
 
 <section id={id} class="panel window">
   <div class="title-bar" style={`--title-color: ${color}; --title-color-2: ${color2};`}>
     <div class="title-bar-text">
-      <span aria-hidden="true">{icon}</span> {title}
+      <PixelIcon name={icon} /> {title}
     </div>
     <div class="title-bar-controls">
       <button type="button" aria-label="Minimize">&#95;</button>

@@ -4,7 +4,7 @@ interface Props {
   color?: string;
 }
 
-const { name, color = 'var(--win-text)' } = Astro.props;
+const { name, color = 'currentColor' } = Astro.props;
 
 const icons: Record<string, string> = {
   browser: `
@@ -64,6 +64,35 @@ const icons: Record<string, string> = {
     <rect x="4" y="6" width="8" height="1" fill="${color}"/>
     <rect x="7" y="11" width="2" height="2" fill="${color}"/>
     <rect x="5" y="13" width="6" height="1" fill="${color}"/>
+  `,
+  folder: `
+    <rect x="1" y="4" width="6" height="2" fill="${color}"/>
+    <rect x="1" y="6" width="14" height="8" fill="${color}"/>
+  `,
+  info: `
+    <rect x="7" y="2" width="2" height="2" fill="${color}"/>
+    <rect x="7" y="6" width="2" height="8" fill="${color}"/>
+  `,
+  check: `
+    <rect x="2" y="8" width="2" height="2" fill="${color}"/>
+    <rect x="4" y="10" width="2" height="2" fill="${color}"/>
+    <rect x="6" y="12" width="2" height="2" fill="${color}"/>
+    <rect x="8" y="10" width="2" height="2" fill="${color}"/>
+    <rect x="10" y="8" width="2" height="2" fill="${color}"/>
+    <rect x="12" y="6" width="2" height="2" fill="${color}"/>
+  `,
+  gear: `
+    <rect x="5" y="5" width="6" height="6" fill="${color}"/>
+    <rect x="7" y="2" width="2" height="3" fill="${color}"/>
+    <rect x="7" y="11" width="2" height="3" fill="${color}"/>
+    <rect x="2" y="7" width="3" height="2" fill="${color}"/>
+    <rect x="11" y="7" width="3" height="2" fill="${color}"/>
+  `,
+  gift: `
+    <rect x="2" y="7" width="12" height="7" fill="${color}"/>
+    <rect x="1" y="5" width="14" height="2" fill="${color}"/>
+    <rect x="5" y="2" width="2" height="3" fill="${color}"/>
+    <rect x="9" y="2" width="2" height="3" fill="${color}"/>
   `,
 };
 ---
