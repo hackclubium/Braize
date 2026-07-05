@@ -354,10 +354,12 @@ a {
     3px 3px 0 rgba(0, 0, 0, 0.25);
 }
 
-.card .card-icon {
-  font-size: 1.6rem;
+.card .pixel-icon {
+  width: 32px;
+  height: 32px;
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  image-rendering: pixelated;
 }
 
 .card h3 {

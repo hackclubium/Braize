@@ -1,0 +1,77 @@
+---
+interface Props {
+  name: string;
+  color?: string;
+}
+
+const { name, color = 'var(--win-text)' } = Astro.props;
+
+const icons: Record<string, string> = {
+  browser: `
+    <rect x="1" y="2" width="14" height="11" fill="#fff" stroke="${color}"/>
+    <rect x="1" y="2" width="14" height="3" fill="${color}"/>
+    <rect x="3" y="3" width="1" height="1" fill="#fff"/>
+    <rect x="5" y="3" width="1" height="1" fill="#fff"/>
+    <rect x="3" y="7" width="9" height="1" fill="${color}"/>
+    <rect x="3" y="9" width="6" height="1" fill="${color}"/>
+    <rect x="3" y="11" width="8" height="1" fill="${color}"/>
+  `,
+  extension: `
+    <rect x="3" y="3" width="10" height="10" fill="${color}"/>
+    <rect x="6" y="1" width="4" height="3" fill="${color}"/>
+    <rect x="8" y="9" width="4" height="4" fill="#fff"/>
+  `,
+  buddy: `
+    <rect x="2" y="2" width="3" height="3" fill="${color}"/>
+    <rect x="11" y="2" width="3" height="3" fill="${color}"/>
+    <rect x="3" y="4" width="10" height="9" fill="${color}"/>
+    <rect x="5" y="8" width="2" height="2" fill="#fff"/>
+    <rect x="9" y="8" width="2" height="2" fill="#fff"/>
+    <rect x="7" y="11" width="2" height="2" fill="#000"/>
+  `,
+  weird: `
+    <rect x="5" y="2" width="6" height="2" fill="${color}"/>
+    <rect x="10" y="4" width="2" height="3" fill="${color}"/>
+    <rect x="8" y="7" width="2" height="2" fill="${color}"/>
+    <rect x="6" y="9" width="2" height="2" fill="${color}"/>
+    <rect x="7" y="11" width="2" height="2" fill="${color}"/>
+    <rect x="7" y="14" width="2" height="2" fill="${color}"/>
+  `,
+  mouse: `
+    <rect x="4" y="4" width="8" height="10" fill="${color}"/>
+    <rect x="4" y="4" width="1" height="1" fill="#fff"/>
+    <rect x="11" y="4" width="1" height="1" fill="#fff"/>
+    <rect x="7" y="4" width="2" height="3" fill="#fff"/>
+  `,
+  globe: `
+    <rect x="6" y="1" width="4" height="1" fill="${color}"/>
+    <rect x="4" y="2" width="8" height="1" fill="${color}"/>
+    <rect x="3" y="3" width="10" height="1" fill="${color}"/>
+    <rect x="2" y="4" width="12" height="7" fill="${color}"/>
+    <rect x="3" y="11" width="10" height="1" fill="${color}"/>
+    <rect x="4" y="12" width="8" height="1" fill="${color}"/>
+    <rect x="6" y="13" width="4" height="1" fill="${color}"/>
+    <rect x="7" y="1" width="2" height="13" fill="#fff"/>
+    <rect x="2" y="6" width="12" height="2" fill="#fff"/>
+  `,
+  sticker: `
+    <rect x="7" y="1" width="2" height="14" fill="${color}"/>
+    <rect x="1" y="7" width="14" height="2" fill="${color}"/>
+  `,
+  monitor: `
+    <rect x="1" y="2" width="14" height="9" fill="${color}"/>
+    <rect x="2" y="3" width="12" height="7" fill="#fff"/>
+    <rect x="4" y="6" width="8" height="1" fill="${color}"/>
+    <rect x="7" y="11" width="2" height="2" fill="${color}"/>
+    <rect x="5" y="13" width="6" height="1" fill="${color}"/>
+  `,
+};
+---
+
+<svg
+  class="pixel-icon"
+  viewBox="0 0 16 16"
+  shape-rendering="crispEdges"
+  aria-hidden="true"
+  set:html={icons[name] ?? ''}
+/>

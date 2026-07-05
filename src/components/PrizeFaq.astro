@@ -1,4 +1,33 @@
 ---
+import PixelIcon from './PixelIcon.astro';
+
+const tiers = [
+  {
+    icon: 'sticker',
+    color: 'var(--hc-cyan)',
+    title: 'Ship Anything',
+    body: 'Submit something that actually runs and we send you a pack of browser-themed stickers.',
+  },
+  {
+    icon: 'mouse',
+    color: 'var(--hc-green)',
+    title: 'Ship Something',
+    body: 'Meet the bar and we send you a high-quality wireless mouse. Because you’ll be doing a lot of browsing.',
+  },
+  {
+    icon: 'globe',
+    color: 'var(--hc-blue)',
+    title: 'Ship Something Great',
+    body: 'Standout submissions get a free domain name plus a year of hosting: your own place on the web.',
+  },
+  {
+    icon: 'monitor',
+    color: 'var(--hc-purple)',
+    title: 'Ship Something Exceptional',
+    body: 'A polished, from-scratch browser engine (or equally ambitious project) earns a portable monitor. More screen, more tabs.',
+  },
+];
+
 const faqs = [
   {
     q: 'What counts as "browser-related"?',
@@ -13,6 +42,10 @@ const faqs = [
     a: 'Any language you want. C++ and Rust are common for real browser engines, but extensions and browsing buddies can be built in anything.',
   },
   {
+    q: 'What decides which prize tier I get?',
+    a: 'Reviewers judge how ambitious and complete the project is, from "it runs" all the way up to a polished from-scratch browser engine.',
+  },
+  {
     q: "What's the deadline?",
     a: 'PLACEHOLDER: submissions close August 31st. Update this once the real date is set.',
   },
@@ -24,12 +57,16 @@ const faqs = [
 ---
 
 <div class="prize-block">
-  <p>
-    <!-- PLACEHOLDER: update prize copy -->
-    Ship a project that meets the bar, and we'll send you a high-quality
-    wireless mouse. Because you'll be doing a lot of browsing.
-  </p>
-  <span class="placeholder-note">Prize details are a placeholder, final reward TBD.</span>
+  <div class="card-grid">
+    {tiers.map((tier) => (
+      <div class="card">
+        <PixelIcon name={tier.icon} color={tier.color} />
+        <h3>{tier.title}</h3>
+        <p>{tier.body}</p>
+      </div>
+    ))}
+  </div>
+  <span class="placeholder-note">Prize tiers are placeholders pending sponsor budget approval.</span>
 </div>
 
 <div class="faq-list">
