@@ -1,7 +1,7 @@
 const HACKCLUB_TOKEN_URL = 'https://auth.hackclub.com/oauth/token';
 const HACKCLUB_ME_URL = 'https://auth.hackclub.com/api/v1/me';
-const HACKATIME_STATS_URL = (username) =>
-  `https://hackatime.hackclub.com/api/v1/users/${encodeURIComponent(username)}/stats`;
+const HACKATIME_TOKEN_URL = 'https://hackatime.hackclub.com/oauth/token';
+const HACKATIME_ME_URL = 'https://hackatime.hackclub.com/api/v1/authenticated/me';
 
 function corsHeaders(env) {
   return {
@@ -18,7 +18,7 @@ function json(data, status, env) {
   });
 }
 
-async function handleOauthToken(request, env) {
+async function handleHackclubOauthToken(request, env) {
   const { code } = await request.json();
   if (!code) return json({ error: 'missing code' }, 400, env);
 
@@ -66,20 +66,42 @@ async function handleOauthToken(request, env) {
   );
 }
 
-async function handleHackatimeStats(username, env) {
-  if (!username) return json({ error: 'missing username' }, 400, env);
+async function handleHackatimeOauthToken(request, env) {
+  const { code } = await request.json();
+  if (!code) return json({ error: 'missing code' }, 400, env);
 
-  const res = await fetch(HACKATIME_STATS_URL(username));
+  const tokenRes = await fetch(HACKATIME_TOKEN_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: env.HACKATIME_OAUTH_CLIENT_ID,
+      client_secret: env.HACKATIME_OAUTH_CLIENT_SECRET,
+      redirect_uri: env.HACKATIME_OAUTH_REDIRECT_URI,
+      code,
+      grant_type: 'authorization_code',
+    }),
+  });
 
-  if (res.status === 404) {
-    return json({ error: 'user not found' }, 404, env);
+  if (!tokenRes.ok) {
+    return json({ error: 'token exchange failed' }, 502, env);
   }
-  if (!res.ok) {
-    return json({ error: 'hackatime lookup failed' }, 502, env);
+
+  const { access_token: accessToken } = await tokenRes.json();
+
+  const meRes = await fetch(HACKATIME_ME_URL, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  if (!meRes.ok) {
+    return json({ error: 'profile fetch failed' }, 502, env);
   }
 
-  const stats = await res.json();
-  return json({ username, stats: stats.data ?? stats }, 200, env);
+  // The access/refresh tokens never leave this worker. Pass through
+  // whatever identity fields the endpoint returns; exact shape gets
+  // confirmed against a real response once this is deployed.
+  const me = await meRes.json();
+
+  return json(me, 200, env);
 }
 
 export default {
@@ -90,13 +112,12 @@ export default {
       return new Response(null, { headers: corsHeaders(env) });
     }
 
-    if (request.method === 'POST' && url.pathname === '/oauth/token') {
-      return handleOauthToken(request, env);
+    if (request.method === 'POST' && url.pathname === '/oauth/hackclub') {
+      return handleHackclubOauthToken(request, env);
     }
 
-    const hackatimeMatch = url.pathname.match(/^\/hackatime\/([^/]+)$/);
-    if (request.method === 'GET' && hackatimeMatch) {
-      return handleHackatimeStats(decodeURIComponent(hackatimeMatch[1]), env);
+    if (request.method === 'POST' && url.pathname === '/oauth/hackatime') {
+      return handleHackatimeOauthToken(request, env);
     }
 
     return json({ error: 'not found' }, 404, env);

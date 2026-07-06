@@ -2,6 +2,7 @@
 import PixelIcon from './PixelIcon.astro';
 
 const HACKCLUB_AUTH_CLIENT_ID = '5d55fc042761a61272e88549fc0dbadf';
+const HACKATIME_OAUTH_CLIENT_ID = 'n45aqUCSVzAloc5wv2zTQKzQzCVHYphzdIJs1i3aWxs';
 const WORKER_URL = 'https://braize-worker.braize.workers.dev';
 const REDIRECT_URI = 'https://hackclubium.github.io/Braize/';
 ---
@@ -21,24 +22,20 @@ const REDIRECT_URI = 'https://hackclubium.github.io/Braize/';
     <div class="connect-info">
       <strong>Hackatime</strong>
       <p class="connect-status" id="hackatime-status">Not connected.</p>
-      <div class="connect-form">
-        <input type="text" id="hackatime-username" class="bevel-in" placeholder="your hackatime username" />
-        <button type="button" class="btn" id="hackatime-connect-btn">Connect</button>
-      </div>
     </div>
+    <button type="button" class="btn" id="hackatime-connect-btn">Connect</button>
   </div>
 
   <span class="placeholder-note">
-    Connections are placeholders until the Hack Club Auth app is registered and the worker is deployed.
+    Connections are placeholders until both OAuth apps are registered and the worker is deployed.
   </span>
 </div>
 
-<script define:vars={{ HACKCLUB_AUTH_CLIENT_ID, WORKER_URL, REDIRECT_URI }}>
+<script define:vars={{ HACKCLUB_AUTH_CLIENT_ID, HACKATIME_OAUTH_CLIENT_ID, WORKER_URL, REDIRECT_URI }}>
   const hcStatusEl = document.getElementById('hc-status');
   const hcConnectBtn = document.getElementById('hc-connect-btn');
   const hackatimeStatusEl = document.getElementById('hackatime-status');
   const hackatimeConnectBtn = document.getElementById('hackatime-connect-btn');
-  const hackatimeInput = document.getElementById('hackatime-username');
 
   function renderHcStatus() {
     const stored = localStorage.getItem('braize_hc_account');
@@ -58,8 +55,7 @@ const REDIRECT_URI = 'https://hackclubium.github.io/Braize/';
   function renderHackatimeStatus() {
     const stored = localStorage.getItem('braize_hackatime');
     if (stored) {
-      const { username } = JSON.parse(stored);
-      hackatimeStatusEl.textContent = `Connected as ${username}.`;
+      hackatimeStatusEl.textContent = 'Connected.';
       hackatimeConnectBtn.textContent = 'Reconnect';
     } else {
       hackatimeStatusEl.textContent = 'Not connected.';
@@ -67,34 +63,35 @@ const REDIRECT_URI = 'https://hackclubium.github.io/Braize/';
     }
   }
 
-  hcConnectBtn.addEventListener('click', () => {
-    const state = crypto.randomUUID();
+  function startOauth(provider, clientId, authorizeUrl, scope) {
+    const state = `${provider}:${crypto.randomUUID()}`;
     sessionStorage.setItem('braize_oauth_state', state);
     const params = new URLSearchParams({
-      client_id: HACKCLUB_AUTH_CLIENT_ID,
+      client_id: clientId,
       redirect_uri: REDIRECT_URI,
       response_type: 'code',
-      scope: 'openid name verification_status slack_id',
+      scope,
       state,
     });
-    window.location.href = `https://auth.hackclub.com/oauth/authorize?${params.toString()}`;
+    window.location.href = `${authorizeUrl}?${params.toString()}`;
+  }
+
+  hcConnectBtn.addEventListener('click', () => {
+    startOauth(
+      'hackclub',
+      HACKCLUB_AUTH_CLIENT_ID,
+      'https://auth.hackclub.com/oauth/authorize',
+      'openid name verification_status slack_id'
+    );
   });
 
-  hackatimeConnectBtn.addEventListener('click', async () => {
-    const username = hackatimeInput.value.trim();
-    if (!username) return;
-    hackatimeStatusEl.textContent = 'Checking...';
-    try {
-      const res = await fetch(`${WORKER_URL}/hackatime/${encodeURIComponent(username)}`);
-      if (!res.ok) {
-        hackatimeStatusEl.textContent = 'Could not find that Hackatime username.';
-        return;
-      }
-      localStorage.setItem('braize_hackatime', JSON.stringify({ username }));
-      renderHackatimeStatus();
-    } catch {
-      hackatimeStatusEl.textContent = 'Something went wrong, try again.';
-    }
+  hackatimeConnectBtn.addEventListener('click', () => {
+    startOauth(
+      'hackatime',
+      HACKATIME_OAUTH_CLIENT_ID,
+      'https://hackatime.hackclub.com/oauth/authorize',
+      'profile read'
+    );
   });
 
   async function handleOauthReturn() {
@@ -116,22 +113,28 @@ const REDIRECT_URI = 'https://hackclubium.github.io/Braize/';
       return;
     }
 
-    hcStatusEl.textContent = 'Finishing login...';
+    const [provider] = state.split(':');
+    const statusEl = provider === 'hackatime' ? hackatimeStatusEl : hcStatusEl;
+    const storageKey = provider === 'hackatime' ? 'braize_hackatime' : 'braize_hc_account';
+    const workerPath = provider === 'hackatime' ? '/oauth/hackatime' : '/oauth/hackclub';
+
+    statusEl.textContent = 'Finishing login...';
     try {
-      const res = await fetch(`${WORKER_URL}/oauth/token`, {
+      const res = await fetch(`${WORKER_URL}${workerPath}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code }),
       });
       if (!res.ok) {
-        hcStatusEl.textContent = 'Login failed. Try again.';
+        statusEl.textContent = 'Login failed. Try again.';
         return;
       }
       const identity = await res.json();
-      localStorage.setItem('braize_hc_account', JSON.stringify(identity));
-      renderHcStatus();
+      localStorage.setItem(storageKey, JSON.stringify(identity));
+      if (provider === 'hackatime') renderHackatimeStatus();
+      else renderHcStatus();
     } catch {
-      hcStatusEl.textContent = 'Login failed. Try again.';
+      statusEl.textContent = 'Login failed. Try again.';
     }
   }
 
@@ -161,23 +164,6 @@ const REDIRECT_URI = 'https://hackclubium.github.io/Braize/';
   .connect-status {
     margin: 2px 0 0;
     font-size: 0.85rem;
-  }
-
-  .connect-form {
-    display: flex;
-    gap: 8px;
-    margin-top: 8px;
-    flex-wrap: wrap;
-  }
-
-  .connect-form input {
-    flex: 1;
-    min-width: 160px;
-    padding: 5px 8px;
-    font-family: var(--font-body);
-    font-size: 0.9rem;
-    border: none;
-    background: #fff;
   }
 
   .connect-row .btn {

@@ -6,7 +6,10 @@ compatibility_date = "2024-11-01"
 [vars]
 HACKCLUB_AUTH_CLIENT_ID = "5d55fc042761a61272e88549fc0dbadf"
 HACKCLUB_AUTH_REDIRECT_URI = "https://hackclubium.github.io/Braize/"
+HACKATIME_OAUTH_CLIENT_ID = "n45aqUCSVzAloc5wv2zTQKzQzCVHYphzdIJs1i3aWxs"
+HACKATIME_OAUTH_REDIRECT_URI = "https://hackclubium.github.io/Braize/"
 ALLOWED_ORIGIN = "https://hackclubium.github.io"
 
-# HACKCLUB_AUTH_CLIENT_SECRET is set separately as a secret, never in this file:
+# These are set separately as secrets, never in this file:
 #   wrangler secret put HACKCLUB_AUTH_CLIENT_SECRET
+#   wrangler secret put HACKATIME_OAUTH_CLIENT_SECRET
