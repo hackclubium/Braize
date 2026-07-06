@@ -1,0 +1,194 @@
+---
+import PixelIcon from './PixelIcon.astro';
+
+const HACKCLUB_AUTH_CLIENT_ID = '5d55fc042761a61272e88549fc0dbadf';
+const WORKER_URL = 'https://braize-worker.braize.workers.dev';
+const REDIRECT_URI = 'https://hackclubium.github.io/Braize/';
+---
+
+<div class="connect-block">
+  <div class="connect-row">
+    <PixelIcon name="plug" color="var(--hc-blue)" />
+    <div class="connect-info">
+      <strong>Hack Club Account</strong>
+      <p class="connect-status" id="hc-status">Not connected.</p>
+    </div>
+    <button type="button" class="btn" id="hc-connect-btn">Connect</button>
+  </div>
+
+  <div class="connect-row">
+    <PixelIcon name="plug" color="var(--hc-green)" />
+    <div class="connect-info">
+      <strong>Hackatime</strong>
+      <p class="connect-status" id="hackatime-status">Not connected.</p>
+      <div class="connect-form">
+        <input type="text" id="hackatime-username" class="bevel-in" placeholder="your hackatime username" />
+        <button type="button" class="btn" id="hackatime-connect-btn">Connect</button>
+      </div>
+    </div>
+  </div>
+
+  <span class="placeholder-note">
+    Connections are placeholders until the Hack Club Auth app is registered and the worker is deployed.
+  </span>
+</div>
+
+<script define:vars={{ HACKCLUB_AUTH_CLIENT_ID, WORKER_URL, REDIRECT_URI }}>
+  const hcStatusEl = document.getElementById('hc-status');
+  const hcConnectBtn = document.getElementById('hc-connect-btn');
+  const hackatimeStatusEl = document.getElementById('hackatime-status');
+  const hackatimeConnectBtn = document.getElementById('hackatime-connect-btn');
+  const hackatimeInput = document.getElementById('hackatime-username');
+
+  function renderHcStatus() {
+    const stored = localStorage.getItem('braize_hc_account');
+    if (stored) {
+      const { name, verificationStatus } = JSON.parse(stored);
+      const verified = verificationStatus === 'verified';
+      hcStatusEl.textContent = `Connected as ${name ?? 'Hack Clubber'}. ${
+        verified ? 'Verified for YSWS.' : `Verification: ${verificationStatus ?? 'unknown'}.`
+      }`;
+      hcConnectBtn.textContent = 'Reconnect';
+    } else {
+      hcStatusEl.textContent = 'Not connected.';
+      hcConnectBtn.textContent = 'Connect';
+    }
+  }
+
+  function renderHackatimeStatus() {
+    const stored = localStorage.getItem('braize_hackatime');
+    if (stored) {
+      const { username } = JSON.parse(stored);
+      hackatimeStatusEl.textContent = `Connected as ${username}.`;
+      hackatimeConnectBtn.textContent = 'Reconnect';
+    } else {
+      hackatimeStatusEl.textContent = 'Not connected.';
+      hackatimeConnectBtn.textContent = 'Connect';
+    }
+  }
+
+  hcConnectBtn.addEventListener('click', () => {
+    const state = crypto.randomUUID();
+    sessionStorage.setItem('braize_oauth_state', state);
+    const params = new URLSearchParams({
+      client_id: HACKCLUB_AUTH_CLIENT_ID,
+      redirect_uri: REDIRECT_URI,
+      response_type: 'code',
+      scope: 'openid name verification_status slack_id',
+      state,
+    });
+    window.location.href = `https://auth.hackclub.com/oauth/authorize?${params.toString()}`;
+  });
+
+  hackatimeConnectBtn.addEventListener('click', async () => {
+    const username = hackatimeInput.value.trim();
+    if (!username) return;
+    hackatimeStatusEl.textContent = 'Checking...';
+    try {
+      const res = await fetch(`${WORKER_URL}/hackatime/${encodeURIComponent(username)}`);
+      if (!res.ok) {
+        hackatimeStatusEl.textContent = 'Could not find that Hackatime username.';
+        return;
+      }
+      localStorage.setItem('braize_hackatime', JSON.stringify({ username }));
+      renderHackatimeStatus();
+    } catch {
+      hackatimeStatusEl.textContent = 'Something went wrong, try again.';
+    }
+  });
+
+  async function handleOauthReturn() {
+    const url = new URL(window.location.href);
+    const code = url.searchParams.get('code');
+    const state = url.searchParams.get('state');
+    if (!code) return;
+
+    const expectedState = sessionStorage.getItem('braize_oauth_state');
+    sessionStorage.removeItem('braize_oauth_state');
+
+    // Strip the query params either way so a refresh doesn't resend the code.
+    url.searchParams.delete('code');
+    url.searchParams.delete('state');
+    window.history.replaceState({}, '', url.toString());
+
+    if (!state || state !== expectedState) {
+      hcStatusEl.textContent = 'Login failed (state mismatch). Try again.';
+      return;
+    }
+
+    hcStatusEl.textContent = 'Finishing login...';
+    try {
+      const res = await fetch(`${WORKER_URL}/oauth/token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+      });
+      if (!res.ok) {
+        hcStatusEl.textContent = 'Login failed. Try again.';
+        return;
+      }
+      const identity = await res.json();
+      localStorage.setItem('braize_hc_account', JSON.stringify(identity));
+      renderHcStatus();
+    } catch {
+      hcStatusEl.textContent = 'Login failed. Try again.';
+    }
+  }
+
+  renderHcStatus();
+  renderHackatimeStatus();
+  handleOauthReturn();
+</script>
+
+<style>
+  .connect-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: #fff;
+    padding: 12px;
+    box-shadow:
+      inset -1px -1px var(--win-shadow),
+      inset 1px 1px var(--win-dark-shadow);
+    margin-bottom: 10px;
+  }
+
+  .connect-row .pixel-icon {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    image-rendering: pixelated;
+    margin-top: 2px;
+  }
+
+  .connect-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .connect-status {
+    margin: 2px 0 0;
+    font-size: 0.85rem;
+  }
+
+  .connect-form {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+
+  .connect-form input {
+    flex: 1;
+    min-width: 160px;
+    padding: 5px 8px;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    border: none;
+    background: #fff;
+  }
+
+  .connect-row .btn {
+    flex-shrink: 0;
+  }
+</style>
