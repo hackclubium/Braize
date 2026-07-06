@@ -53,17 +53,25 @@ async function handleHackclubOauthToken(request, env) {
   // Only pass back what the UI needs. The access/refresh tokens never
   // leave this worker.
   const name = [identity.first_name, identity.last_name].filter(Boolean).join(' ') || null;
+  const slackId = identity.slack_id ?? null;
+  const verificationStatus = identity.verification_status ?? null;
+  const yswsEligible = identity.ysws_eligible ?? false;
 
-  return json(
-    {
-      name,
-      slackId: identity.slack_id ?? null,
-      verificationStatus: identity.verification_status ?? null,
-      yswsEligible: identity.ysws_eligible ?? false,
-    },
-    200,
-    env
-  );
+  if (slackId) {
+    await env.DB.prepare(
+      `INSERT INTO users (slack_id, name, verification_status, ysws_eligible, updated_at)
+       VALUES (?1, ?2, ?3, ?4, datetime('now'))
+       ON CONFLICT(slack_id) DO UPDATE SET
+         name = excluded.name,
+         verification_status = excluded.verification_status,
+         ysws_eligible = excluded.ysws_eligible,
+         updated_at = excluded.updated_at`
+    )
+      .bind(slackId, name, verificationStatus, yswsEligible ? 1 : 0)
+      .run();
+  }
+
+  return json({ name, slackId, verificationStatus, yswsEligible }, 200, env);
 }
 
 async function handleHackatimeOauthToken(request, env) {

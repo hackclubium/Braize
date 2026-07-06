@@ -13,3 +13,11 @@ ALLOWED_ORIGIN = "https://hackclubium.github.io"
 # These are set separately as secrets, never in this file:
 #   wrangler secret put HACKCLUB_AUTH_CLIENT_SECRET
 #   wrangler secret put HACKATIME_OAUTH_CLIENT_SECRET
+
+# Created with `wrangler d1 create braize-db`, then paste the printed
+# database_id below. Apply schema with:
+#   wrangler d1 execute braize-db --remote --file=./migrations/0001_init.sql
+[[d1_databases]]
+binding = "DB"
+database_name = "braize-db"
+database_id = "2629c36f-797e-4af3-8d8b-0cbad0d18d7f"
