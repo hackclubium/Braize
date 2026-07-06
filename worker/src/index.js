@@ -48,15 +48,18 @@ async function handleOauthToken(request, env) {
     return json({ error: 'profile fetch failed' }, 502, env);
   }
 
-  const me = await meRes.json();
+  const { identity } = await meRes.json();
 
   // Only pass back what the UI needs. The access/refresh tokens never
   // leave this worker.
+  const name = [identity.first_name, identity.last_name].filter(Boolean).join(' ') || null;
+
   return json(
     {
-      name: me.name ?? null,
-      slackId: me.slack_id ?? null,
-      verificationStatus: me.verification_status ?? null,
+      name,
+      slackId: identity.slack_id ?? null,
+      verificationStatus: identity.verification_status ?? null,
+      yswsEligible: identity.ysws_eligible ?? false,
     },
     200,
     env

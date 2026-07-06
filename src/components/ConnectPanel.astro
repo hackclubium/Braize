@@ -43,11 +43,11 @@ const REDIRECT_URI = 'https://hackclubium.github.io/Braize/';
   function renderHcStatus() {
     const stored = localStorage.getItem('braize_hc_account');
     if (stored) {
-      const { name, verificationStatus } = JSON.parse(stored);
-      const verified = verificationStatus === 'verified';
-      hcStatusEl.textContent = `Connected as ${name ?? 'Hack Clubber'}. ${
-        verified ? 'Verified for YSWS.' : `Verification: ${verificationStatus ?? 'unknown'}.`
-      }`;
+      const { name, verificationStatus, yswsEligible } = JSON.parse(stored);
+      const idVerified = verificationStatus === 'verified';
+      hcStatusEl.textContent = `Connected as ${name ?? 'Hack Clubber'}. ID: ${
+        idVerified ? 'Verified' : verificationStatus ?? 'unverified'
+      }. YSWS eligible: ${yswsEligible ? 'Yes' : 'No'}.`;
       hcConnectBtn.textContent = 'Reconnect';
     } else {
       hcStatusEl.textContent = 'Not connected.';
