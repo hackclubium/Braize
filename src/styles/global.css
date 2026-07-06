@@ -369,6 +369,14 @@ a {
   image-rendering: pixelated;
 }
 
+.connect-row .pixel-icon {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  image-rendering: pixelated;
+  margin-top: 2px;
+}
+
 .card h3 {
   font-size: 1.3rem;
   margin-bottom: 6px;
