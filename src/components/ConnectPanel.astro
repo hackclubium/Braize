@@ -55,7 +55,10 @@ const REDIRECT_URI = 'https://hackclubium.github.io/Braize/';
   function renderHackatimeStatus() {
     const stored = localStorage.getItem('braize_hackatime');
     if (stored) {
-      hackatimeStatusEl.textContent = 'Connected.';
+      const { githubUsername, trustLevel } = JSON.parse(stored);
+      hackatimeStatusEl.textContent = `Connected${githubUsername ? ` as @${githubUsername}` : ''}.${
+        trustLevel ? ` Trust: ${trustLevel}.` : ''
+      }`;
       hackatimeConnectBtn.textContent = 'Reconnect';
     } else {
       hackatimeStatusEl.textContent = 'Not connected.';

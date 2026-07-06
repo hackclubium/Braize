@@ -104,12 +104,26 @@ async function handleHackatimeOauthToken(request, env) {
     return json({ error: 'profile fetch failed' }, 502, env);
   }
 
-  // The access/refresh tokens never leave this worker. Pass through
-  // whatever identity fields the endpoint returns; exact shape gets
-  // confirmed against a real response once this is deployed.
+  // The access/refresh tokens never leave this worker.
   const me = await meRes.json();
+  const slackId = me.slack_id ?? null;
+  const githubUsername = me.github_username ?? null;
+  const trustLevel = me.trust_factor?.trust_level ?? null;
 
-  return json(me, 200, env);
+  if (slackId) {
+    await env.DB.prepare(
+      `INSERT INTO users (slack_id, hackatime_connected, hackatime_data, updated_at)
+       VALUES (?1, 1, ?2, datetime('now'))
+       ON CONFLICT(slack_id) DO UPDATE SET
+         hackatime_connected = 1,
+         hackatime_data = excluded.hackatime_data,
+         updated_at = excluded.updated_at`
+    )
+      .bind(slackId, JSON.stringify(me))
+      .run();
+  }
+
+  return json({ githubUsername, trustLevel }, 200, env);
 }
 
 export default {
