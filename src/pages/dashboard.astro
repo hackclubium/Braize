@@ -1,0 +1,271 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Panel from '../components/Panel.astro';
+---
+
+<Layout title="Dashboard - Braize" description="Manage your Braize projects and journal.">
+  <main class="page">
+    <Panel id="projects" title="My Projects" icon="folder" color="var(--hc-blue)" color2="var(--hc-cyan)">
+      <div id="signed-out-notice" style="display:none;">
+        <p>Not connected. <a href={`${import.meta.env.BASE_URL}`}>Go connect your Hack Club account</a> first.</p>
+      </div>
+
+      <div id="dashboard-body" style="display:none;">
+        <form id="new-project-form" class="project-form">
+          <input type="text" name="name" placeholder="Project name" required />
+          <input type="text" name="repo_url" placeholder="Repo URL (optional)" />
+          <textarea name="description" placeholder="Description (optional)" rows="2"></textarea>
+          <button type="submit" class="btn btn-accent">Add Project</button>
+        </form>
+
+        <div id="project-list"></div>
+      </div>
+    </Panel>
+  </main>
+</Layout>
+
+<script type="module">
+  import { marked } from 'marked';
+
+  const WORKER_URL = 'https://braize-worker.braize.workers.dev';
+
+  const account = JSON.parse(localStorage.getItem('braize_hc_account') || 'null');
+  const sessionToken = account?.sessionToken;
+
+  const signedOutNotice = document.getElementById('signed-out-notice');
+  const dashboardBody = document.getElementById('dashboard-body');
+  const projectList = document.getElementById('project-list');
+  const newProjectForm = document.getElementById('new-project-form');
+
+  if (!sessionToken) {
+    signedOutNotice.style.display = 'block';
+  } else {
+    dashboardBody.style.display = 'block';
+    loadProjects();
+  }
+
+  function authHeaders(extra = {}) {
+    return { Authorization: `Bearer ${sessionToken}`, ...extra };
+  }
+
+  async function api(path, options = {}) {
+    const res = await fetch(`${WORKER_URL}${path}`, {
+      ...options,
+      headers: authHeaders({ 'Content-Type': 'application/json', ...(options.headers || {}) }),
+    });
+    if (!res.ok) throw new Error(`request failed: ${res.status}`);
+    return res.json();
+  }
+
+  async function loadProjects() {
+    projectList.textContent = 'Loading...';
+    const { projects } = await api('/projects');
+    projectList.innerHTML = '';
+    projects.forEach((p) => projectList.appendChild(renderProject(p)));
+    if (projects.length === 0) projectList.textContent = 'No projects yet.';
+  }
+
+  function renderProject(project) {
+    const el = document.createElement('div');
+    el.className = 'project-card';
+    el.innerHTML = `
+      <div class="project-header">
+        <strong>${escapeHtml(project.name)}</strong>
+        <span class="project-status">${escapeHtml(project.status)}</span>
+      </div>
+      ${project.description ? `<p>${escapeHtml(project.description)}</p>` : ''}
+      ${project.repo_url ? `<p><a href="${escapeHtml(project.repo_url)}" target="_blank" rel="noopener">${escapeHtml(project.repo_url)}</a></p>` : ''}
+
+      <div class="hackatime-link">
+        <input type="text" class="hackatime-input" placeholder="Hackatime project name" value="${escapeHtml(project.hackatime_project_name ?? '')}" />
+        <button type="button" class="btn save-hackatime">Link</button>
+        <button type="button" class="btn check-stats">Check hours</button>
+        <span class="hackatime-hours"></span>
+      </div>
+
+      <div class="journal-section">
+        <h4>Journal</h4>
+        <form class="journal-form">
+          <input type="text" name="title" placeholder="Entry title (optional)" />
+          <textarea name="body" placeholder="What did you work on? (markdown supported)" rows="3" required></textarea>
+          <button type="submit" class="btn">Add Entry</button>
+        </form>
+        <div class="journal-entries">Loading...</div>
+      </div>
+
+      <button type="button" class="btn delete-project">Delete Project</button>
+    `;
+
+    el.querySelector('.save-hackatime').addEventListener('click', async () => {
+      const value = el.querySelector('.hackatime-input').value.trim();
+      await api(`/projects/${project.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ hackatime_project_name: value || null }),
+      });
+      project.hackatime_project_name = value || null;
+    });
+
+    el.querySelector('.check-stats').addEventListener('click', async () => {
+      const hoursEl = el.querySelector('.hackatime-hours');
+      hoursEl.textContent = 'Loading...';
+      try {
+        const { totalSeconds } = await api(`/projects/${project.id}/hackatime-stats`);
+        hoursEl.textContent = `${(totalSeconds / 3600).toFixed(1)} hrs logged`;
+      } catch {
+        hoursEl.textContent = 'Link a Hackatime project and connect Hackatime first.';
+      }
+    });
+
+    el.querySelector('.delete-project').addEventListener('click', async () => {
+      if (!confirm(`Delete "${project.name}"? This also deletes its journal entries.`)) return;
+      await api(`/projects/${project.id}`, { method: 'DELETE' });
+      el.remove();
+    });
+
+    const journalEntries = el.querySelector('.journal-entries');
+    loadJournal(project.id, journalEntries);
+
+    el.querySelector('.journal-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const title = form.title.value.trim() || null;
+      const body = form.body.value.trim();
+      if (!body) return;
+      await api(`/projects/${project.id}/journal`, { method: 'POST', body: JSON.stringify({ title, body }) });
+      form.reset();
+      loadJournal(project.id, journalEntries);
+    });
+
+    return el;
+  }
+
+  async function loadJournal(projectId, container) {
+    container.textContent = 'Loading...';
+    const { entries } = await api(`/projects/${projectId}/journal`);
+    container.innerHTML = '';
+    if (entries.length === 0) {
+      container.textContent = 'No entries yet.';
+      return;
+    }
+    entries.forEach((entry) => {
+      const entryEl = document.createElement('div');
+      entryEl.className = 'journal-entry';
+      entryEl.innerHTML = `
+        ${entry.title ? `<strong>${escapeHtml(entry.title)}</strong>` : ''}
+        <div class="journal-body">${marked.parse(entry.body)}</div>
+        <span class="journal-date">${new Date(entry.created_at + 'Z').toLocaleString()}</span>
+      `;
+      container.appendChild(entryEl);
+    });
+  }
+
+  newProjectForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const name = form.name.value.trim();
+    if (!name) return;
+    const repo_url = form.repo_url.value.trim() || null;
+    const description = form.description.value.trim() || null;
+    await api('/projects', { method: 'POST', body: JSON.stringify({ name, repo_url, description }) });
+    form.reset();
+    loadProjects();
+  });
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+</script>
+
+<style>
+  .project-form,
+  .journal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .project-form input,
+  .project-form textarea,
+  .journal-form input,
+  .journal-form textarea,
+  .hackatime-input {
+    font-family: var(--font-body);
+    padding: 6px 8px;
+    box-shadow:
+      inset 1px 1px var(--win-dark-shadow),
+      inset -1px -1px var(--win-light-highlight);
+    border: none;
+  }
+
+  .project-card {
+    background: #fff;
+    padding: 12px;
+    margin-bottom: 14px;
+    box-shadow:
+      inset -1px -1px var(--win-shadow),
+      inset 1px 1px var(--win-dark-shadow);
+  }
+
+  .project-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .project-status {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--win-shadow);
+  }
+
+  .hackatime-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin: 8px 0;
+  }
+
+  .hackatime-input {
+    flex: 1;
+    min-width: 140px;
+  }
+
+  .hackatime-hours {
+    font-size: 0.85rem;
+    color: var(--hc-green);
+  }
+
+  .journal-section {
+    margin-top: 12px;
+    border-top: 1px solid var(--win-shadow);
+    padding-top: 10px;
+  }
+
+  .journal-entry {
+    background: var(--win-face);
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    box-shadow:
+      inset 1px 1px var(--win-dark-shadow),
+      inset -1px -1px var(--win-light-highlight);
+  }
+
+  .journal-body {
+    font-size: 0.9rem;
+  }
+
+  .journal-body :global(p) {
+    margin: 0.4em 0;
+  }
+
+  .journal-date {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--win-shadow);
+    margin-top: 4px;
+  }
+</style>

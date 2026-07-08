@@ -26,9 +26,9 @@ const REDIRECT_URI = 'https://hackclubium.github.io/Braize/';
     <button type="button" class="btn" id="hackatime-connect-btn">Connect</button>
   </div>
 
-  <span class="placeholder-note">
-    Connections are placeholders until both OAuth apps are registered and the worker is deployed.
-  </span>
+  <a class="btn btn-accent" id="dashboard-link" href={`${import.meta.env.BASE_URL}dashboard/`} style="display:none; margin-top:10px;">
+    Go to Dashboard
+  </a>
 </div>
 
 <script define:vars={{ HACKCLUB_AUTH_CLIENT_ID, HACKATIME_OAUTH_CLIENT_ID, WORKER_URL, REDIRECT_URI }}>
@@ -36,6 +36,7 @@ const REDIRECT_URI = 'https://hackclubium.github.io/Braize/';
   const hcConnectBtn = document.getElementById('hc-connect-btn');
   const hackatimeStatusEl = document.getElementById('hackatime-status');
   const hackatimeConnectBtn = document.getElementById('hackatime-connect-btn');
+  const dashboardLink = document.getElementById('dashboard-link');
 
   function renderHcStatus() {
     const stored = localStorage.getItem('braize_hc_account');
@@ -46,9 +47,11 @@ const REDIRECT_URI = 'https://hackclubium.github.io/Braize/';
         idVerified ? 'Verified' : verificationStatus ?? 'unverified'
       }. YSWS eligible: ${yswsEligible ? 'Yes' : 'No'}.`;
       hcConnectBtn.textContent = 'Reconnect';
+      dashboardLink.style.display = 'inline-block';
     } else {
       hcStatusEl.textContent = 'Not connected.';
       hcConnectBtn.textContent = 'Connect';
+      dashboardLink.style.display = 'none';
     }
   }
 
@@ -123,9 +126,13 @@ const REDIRECT_URI = 'https://hackclubium.github.io/Braize/';
 
     statusEl.textContent = 'Finishing login...';
     try {
+      const sessionToken = JSON.parse(localStorage.getItem('braize_hc_account') || 'null')?.sessionToken;
+      const headers = { 'Content-Type': 'application/json' };
+      if (provider === 'hackatime' && sessionToken) headers.Authorization = `Bearer ${sessionToken}`;
+
       const res = await fetch(`${WORKER_URL}${workerPath}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ code }),
       });
       if (!res.ok) {
