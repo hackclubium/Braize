@@ -26,7 +26,7 @@ const REDIRECT_URI = 'https://hackclubium.github.io/Braize/';
     <button type="button" class="btn" id="hackatime-connect-btn">Connect</button>
   </div>
 
-  <a class="btn btn-accent" id="dashboard-link" href={`${import.meta.env.BASE_URL}dashboard/`} style="display:none; margin-top:10px;">
+  <a class="btn btn-accent" id="dashboard-link" href={`${import.meta.env.BASE_URL.replace(/\/$/, '')}/dashboard/`} style="display:none; margin-top:10px;">
     Go to Dashboard
   </a>
 </div>
