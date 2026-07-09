@@ -78,7 +78,7 @@ import PixelIcon from '../components/PixelIcon.astro';
             <h2>Build Queue</h2>
             <p>Each folder is one browser project. Link Hackatime once, then hours stay live.</p>
           </div>
-          <button type="button" class="btn btn-accent add-project-toggle" id="add-project-toggle">
+          <button type="button" class="btn btn-accent add-project-toggle action-launch" id="add-project-toggle">
             <span id="add-project-toggle-label">+ New Project</span>
           </button>
         </div>
@@ -369,7 +369,7 @@ import PixelIcon from '../components/PixelIcon.astro';
             <select class="hackatime-select" data-project-id="${project.id}" data-current="${escapeHtml(project.hackatime_project_name ?? '')}">
               <option value="">— not linked —</option>
             </select>
-            <button type="button" class="btn-mini refresh-hackatime" title="Refresh project list from Hackatime">↻</button>
+            <button type="button" class="btn-mini refresh-hackatime icon-action" title="Refresh project list from Hackatime">Refresh</button>
           </div>
           <div class="hours-display">
             <div class="hours-bar"><div class="hours-fill" id="hours-fill-${project.id}"></div></div>
@@ -379,8 +379,11 @@ import PixelIcon from '../components/PixelIcon.astro';
 
         <div class="journal-section">
           <div class="journal-header">
-            <h4>Journal</h4>
-            <button type="button" class="btn-mini toggle-journal" data-target="journal-form-${project.id}">+ Add Entry</button>
+            <div>
+              <h4>Journal</h4>
+              <span class="journal-kicker">devlog + proof</span>
+            </div>
+            <button type="button" class="btn-mini toggle-journal action-soft" data-target="journal-form-${project.id}">+ Add Entry</button>
           </div>
           <form class="journal-form" id="journal-form-${project.id}" hidden>
             <input type="text" name="title" placeholder="Entry title (optional)" maxlength="100" />
@@ -393,8 +396,8 @@ import PixelIcon from '../components/PixelIcon.astro';
               <span class="journal-help">PNG/JPG/GIF/WebP, max 900 KB. Inserts into markdown.</span>
             </div>
             <div class="form-actions">
-              <button type="submit" class="btn-mini btn-accent-mini">Post</button>
-              <button type="button" class="btn-mini cancel-journal">Cancel</button>
+              <button type="submit" class="btn-mini btn-accent-mini action-post">Post Entry</button>
+              <button type="button" class="btn-mini cancel-journal action-muted">Cancel</button>
             </div>
           </form>
           <div class="journal-entries" id="journal-${project.id}">
@@ -402,8 +405,9 @@ import PixelIcon from '../components/PixelIcon.astro';
           </div>
         </div>
 
-        <div class="project-footer">
-          <button type="button" class="btn-mini danger delete-project">Delete Project</button>
+        <div class="project-footer action-dock">
+          <span class="dock-label">Project Controls</span>
+          <button type="button" class="btn-mini danger delete-project action-danger">Delete Project</button>
         </div>
       </div>
     `;
@@ -763,6 +767,45 @@ import PixelIcon from '../components/PixelIcon.astro';
     flex-shrink: 0;
   }
 
+  .action-launch {
+    position: relative;
+    padding: 12px 18px 12px 44px;
+    min-height: 46px;
+    background:
+      linear-gradient(180deg, var(--hc-yellow), var(--hc-orange));
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    box-shadow:
+      inset -1px -1px var(--win-dark-shadow),
+      inset 1px 1px var(--win-light-highlight),
+      inset -2px -2px rgba(0,0,0,0.28),
+      inset 2px 2px rgba(255,255,255,0.35),
+      5px 5px 0 rgba(0,0,0,0.25);
+  }
+
+  .action-launch::before {
+    content: '';
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    width: 18px;
+    height: 18px;
+    transform: translateY(-50%);
+    background:
+      linear-gradient(#111, #111) 7px 2px / 4px 14px no-repeat,
+      linear-gradient(#111, #111) 2px 7px / 14px 4px no-repeat;
+  }
+
+  .action-launch:hover {
+    transform: translate(-1px, -1px);
+    box-shadow:
+      inset -1px -1px var(--win-dark-shadow),
+      inset 1px 1px var(--win-light-highlight),
+      inset -2px -2px rgba(0,0,0,0.28),
+      inset 2px 2px rgba(255,255,255,0.35),
+      7px 7px 0 rgba(0,0,0,0.25);
+  }
+
   .project-toolbar {
     display: flex;
     justify-content: space-between;
@@ -869,6 +912,7 @@ import PixelIcon from '../components/PixelIcon.astro';
   .project-card {
     position: relative;
     background: var(--win-face);
+    border: 0;
     box-shadow:
       inset -1px -1px var(--win-shadow),
       inset 1px 1px var(--win-dark-shadow),
@@ -890,6 +934,17 @@ import PixelIcon from '../components/PixelIcon.astro';
       linear-gradient(var(--project-accent, var(--hc-blue)), var(--project-accent, var(--hc-blue))) 0 18px / 96px 58px no-repeat,
       linear-gradient(var(--project-accent, var(--hc-blue)), var(--project-accent, var(--hc-blue))) 0 0 / 42px 24px no-repeat;
     pointer-events: none;
+  }
+
+  .project-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 7px;
+    background: linear-gradient(180deg, var(--project-accent, var(--hc-blue)), var(--hc-yellow), var(--hc-purple));
+    z-index: 2;
   }
 
   .project-card:hover {
@@ -1089,6 +1144,7 @@ import PixelIcon from '../components/PixelIcon.astro';
   .project-stats {
     background:
       repeating-linear-gradient(90deg, rgba(255,255,255,0.32) 0 1px, transparent 1px 8px),
+      linear-gradient(135deg, rgba(91, 192, 222, 0.24), rgba(255,255,255,0.12)),
       var(--win-face);
     display: grid;
     grid-template-columns: minmax(220px, 0.9fr) 1fr;
@@ -1128,6 +1184,21 @@ import PixelIcon from '../components/PixelIcon.astro';
       linear-gradient(-45deg, transparent 50%, var(--win-text) 50%) calc(100% - 9px) 50% / 6px 6px no-repeat,
       var(--win-face);
     padding-right: 28px;
+  }
+
+  .icon-action {
+    min-height: 30px;
+    padding-inline: 12px;
+    background: linear-gradient(180deg, #fff, var(--hc-cyan));
+    color: #001;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  .icon-action::before {
+    content: '↻';
+    margin-right: 5px;
+    color: var(--hc-blue);
   }
   .hours-display {
     display: flex;
@@ -1175,6 +1246,12 @@ import PixelIcon from '../components/PixelIcon.astro';
       inset 2px 2px var(--win-highlight);
     cursor: pointer;
     border: none;
+    transition: transform 0.08s ease, filter 0.08s ease;
+  }
+
+  .btn-mini:hover {
+    transform: translate(-1px, -1px);
+    filter: saturate(1.15);
   }
   .btn-mini:active {
     box-shadow:
@@ -1194,6 +1271,26 @@ import PixelIcon from '../components/PixelIcon.astro';
     background: var(--hc-yellow);
   }
 
+  .action-soft {
+    background: linear-gradient(180deg, #fff, var(--hc-purple));
+    color: #fff;
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.45);
+  }
+
+  .action-post {
+    min-width: 110px;
+    background: linear-gradient(180deg, var(--hc-green), var(--hc-cyan));
+    color: #001;
+  }
+
+  .action-muted {
+    color: var(--win-shadow);
+  }
+
+  .action-danger {
+    background: linear-gradient(180deg, #fff, #ffd6dc);
+  }
+
   /* Journal section */
   .journal-section {
     margin-top: 14px;
@@ -1207,6 +1304,15 @@ import PixelIcon from '../components/PixelIcon.astro';
     justify-content: space-between;
     align-items: center;
     margin-bottom: 8px;
+  }
+
+  .journal-kicker {
+    display: block;
+    margin-top: -4px;
+    color: var(--win-shadow);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
   }
   .journal-header h4 {
     margin: 0;
@@ -1370,8 +1476,28 @@ import PixelIcon from '../components/PixelIcon.astro';
     padding-top: 10px;
     border-top: 1px dashed var(--win-shadow);
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
     background: linear-gradient(90deg, transparent, rgba(236, 55, 80, 0.08));
+  }
+
+  .action-dock {
+    padding: 10px;
+    background:
+      repeating-linear-gradient(90deg, rgba(0,0,0,0.06) 0 2px, transparent 2px 10px),
+      var(--win-face);
+    box-shadow:
+      inset 1px 1px var(--win-shadow),
+      inset -1px -1px var(--win-light-highlight);
+  }
+
+  .dock-label {
+    color: var(--win-shadow);
+    font-size: 0.72rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
   }
 
   @media (max-width: 720px) {
