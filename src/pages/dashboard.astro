@@ -338,13 +338,30 @@ import PixelIcon from '../components/PixelIcon.astro';
     const statusColorVal = statusColor(project.status);
 
     el.innerHTML = `
-      <div class="project-tab" style="background: ${statusColorVal};">
-        <span class="project-name">${escapeHtml(project.name)}</span>
-        <span class="project-status" style="color: rgba(255,255,255,0.95);">${escapeHtml(project.status || 'in progress')}</span>
+      <div class="project-tab" style="--project-accent: ${statusColorVal};">
+        <div class="project-title-block">
+          <span class="project-folder" aria-hidden="true"></span>
+          <div>
+            <span class="project-name">${escapeHtml(project.name)}</span>
+            <span class="project-subtitle">${project.repo_url ? 'repo connected' : 'local build log'}</span>
+          </div>
+        </div>
+        <div class="project-badges">
+          <span class="project-hours-chip">${hoursText}</span>
+          <span class="project-status">${escapeHtml(project.status || 'in progress')}</span>
+        </div>
       </div>
       <div class="project-body">
-        ${project.description ? `<p class="project-desc">${escapeHtml(project.description)}</p>` : ''}
-        ${project.repo_url ? `<p class="project-repo"><a href="${escapeHtml(project.repo_url)}" target="_blank" rel="noopener">${escapeHtml(project.repo_url)}</a></p>` : ''}
+        <div class="project-summary">
+          <div class="project-copy">
+            ${project.description ? `<p class="project-desc">${escapeHtml(project.description)}</p>` : '<p class="project-desc muted">No description yet. Add context before review day.</p>'}
+            ${project.repo_url ? `<p class="project-repo"><span>Repo</span><a href="${escapeHtml(project.repo_url)}" target="_blank" rel="noopener">${escapeHtml(project.repo_url)}</a></p>` : '<p class="project-repo muted"><span>Repo</span>not added</p>'}
+          </div>
+          <div class="project-score">
+            <strong>${hours > 0 ? hours.toFixed(1) : '0.0'}</strong>
+            <span>tracked hrs</span>
+          </div>
+        </div>
 
         <div class="project-stats">
           <div class="stat-row">
@@ -809,8 +826,8 @@ import PixelIcon from '../components/PixelIcon.astro';
   /* Project list */
   .project-list {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 16px;
+    grid-template-columns: 1fr;
+    gap: 20px;
   }
   .project-list .loading {
     padding: 20px;
@@ -851,11 +868,11 @@ import PixelIcon from '../components/PixelIcon.astro';
   /* Project card — folder tab style */
   .project-card {
     position: relative;
-    background: #fff;
+    background: var(--win-face);
     box-shadow:
       inset -1px -1px var(--win-shadow),
       inset 1px 1px var(--win-dark-shadow),
-      7px 7px 0 rgba(0, 0, 0, 0.2);
+      10px 10px 0 rgba(0, 0, 0, 0.24);
     overflow: hidden;
     min-height: 100%;
     transition: transform 0.1s ease, box-shadow 0.1s ease;
@@ -864,14 +881,14 @@ import PixelIcon from '../components/PixelIcon.astro';
   .project-card::after {
     content: '';
     position: absolute;
-    right: 10px;
-    top: 38px;
-    width: 54px;
-    height: 42px;
-    opacity: 0.08;
+    right: 18px;
+    top: 58px;
+    width: 96px;
+    height: 76px;
+    opacity: 0.06;
     background:
-      linear-gradient(var(--hc-blue), var(--hc-blue)) 0 8px / 54px 34px no-repeat,
-      linear-gradient(var(--hc-blue), var(--hc-blue)) 0 0 / 24px 12px no-repeat;
+      linear-gradient(var(--project-accent, var(--hc-blue)), var(--project-accent, var(--hc-blue))) 0 18px / 96px 58px no-repeat,
+      linear-gradient(var(--project-accent, var(--hc-blue)), var(--project-accent, var(--hc-blue))) 0 0 / 42px 24px no-repeat;
     pointer-events: none;
   }
 
@@ -880,45 +897,192 @@ import PixelIcon from '../components/PixelIcon.astro';
     box-shadow:
       inset -1px -1px var(--win-shadow),
       inset 1px 1px var(--win-dark-shadow),
-      9px 9px 0 rgba(0, 0, 0, 0.25),
-      0 0 14px rgba(91, 192, 222, 0.2);
+      14px 14px 0 rgba(0, 0, 0, 0.24),
+      0 0 22px rgba(91, 192, 222, 0.22);
   }
   .project-tab {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    min-height: 36px;
-    padding: 7px 10px;
+    gap: 14px;
+    min-height: 58px;
+    padding: 10px 12px;
     color: #fff;
     font-family: var(--font-body);
+    background:
+      linear-gradient(90deg, var(--project-accent, var(--hc-blue)), rgba(0,0,0,0.72)),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.12) 0 2px, transparent 2px 10px);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.25),
       inset 0 -1px 0 rgba(0, 0, 0, 0.25);
   }
+
+  .project-title-block {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .project-folder {
+    position: relative;
+    width: 38px;
+    height: 30px;
+    flex-shrink: 0;
+    background: var(--hc-yellow);
+    box-shadow:
+      inset -2px -2px rgba(0, 0, 0, 0.25),
+      inset 2px 2px rgba(255, 255, 255, 0.55),
+      3px 3px 0 rgba(0, 0, 0, 0.25);
+  }
+
+  .project-folder::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: -7px;
+    width: 18px;
+    height: 9px;
+    background: var(--hc-yellow);
+    box-shadow: inset 2px 2px rgba(255, 255, 255, 0.55);
+  }
+
   .project-name {
+    display: block;
     font-weight: bold;
-    font-size: 0.95rem;
+    font-size: 1.08rem;
+    max-width: 48vw;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.45);
+  }
+
+  .project-subtitle {
+    display: block;
+    margin-top: 2px;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .project-badges {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .project-hours-chip {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    color: var(--hc-green);
+    background: #000;
+    padding: 2px 8px;
+    box-shadow: inset 0 0 0 1px var(--hc-green);
   }
   .project-status {
     font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     font-weight: bold;
-    background: rgba(0, 0, 0, 0.18);
-    padding: 2px 6px;
+    background: rgba(255, 255, 255, 0.16);
+    padding: 4px 8px;
+    box-shadow:
+      inset -1px -1px rgba(0,0,0,0.38),
+      inset 1px 1px rgba(255,255,255,0.25);
   }
   .project-body {
     position: relative;
     z-index: 1;
     padding: 14px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.45), transparent 90px),
+      var(--win-face);
+  }
+
+  .project-summary {
+    display: grid;
+    grid-template-columns: 1fr 120px;
+    gap: 12px;
+    align-items: stretch;
+    margin-bottom: 12px;
+  }
+
+  .project-copy {
+    min-width: 0;
+    padding: 12px;
+    background: #fff;
+    box-shadow:
+      inset 1px 1px var(--win-dark-shadow),
+      inset -1px -1px var(--win-light-highlight);
+  }
+
+  .project-score {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    background: #080808;
+    color: var(--hc-green);
+    text-align: center;
+    box-shadow:
+      inset 1px 1px #000,
+      inset -1px -1px var(--win-light-highlight);
+  }
+
+  .project-score strong {
+    font-family: var(--font-display);
+    font-size: 2.8rem;
+    line-height: 0.9;
+    font-weight: normal;
+    text-shadow: 0 0 10px rgba(51, 214, 166, 0.5);
+  }
+
+  .project-score span {
+    margin-top: 5px;
+    color: rgba(51, 214, 166, 0.78);
+    font-size: 0.72rem;
+    text-transform: uppercase;
   }
   .project-desc {
     margin: 0 0 8px;
     color: var(--win-text);
   }
+
+  .project-desc.muted,
+  .project-repo.muted {
+    color: var(--win-shadow);
+    font-style: italic;
+  }
+
   .project-repo {
     margin: 0 0 10px;
     font-size: 0.85rem;
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    min-width: 0;
+  }
+
+  .project-repo span {
+    flex-shrink: 0;
+    padding: 1px 6px;
+    background: var(--hc-cyan);
+    color: #001;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.68rem;
+  }
+
+  .project-repo a {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   /* Project stats row */
@@ -926,7 +1090,11 @@ import PixelIcon from '../components/PixelIcon.astro';
     background:
       repeating-linear-gradient(90deg, rgba(255,255,255,0.32) 0 1px, transparent 1px 8px),
       var(--win-face);
-    padding: 10px;
+    display: grid;
+    grid-template-columns: minmax(220px, 0.9fr) 1fr;
+    gap: 12px;
+    align-items: center;
+    padding: 12px;
     margin: 10px 0;
     box-shadow:
       inset 1px 1px var(--win-dark-shadow),
@@ -937,7 +1105,7 @@ import PixelIcon from '../components/PixelIcon.astro';
     align-items: center;
     gap: 6px;
     flex-wrap: wrap;
-    margin-bottom: 8px;
+    margin-bottom: 0;
   }
   .stat-label-inline {
     font-size: 0.8rem;
@@ -1203,6 +1371,7 @@ import PixelIcon from '../components/PixelIcon.astro';
     border-top: 1px dashed var(--win-shadow);
     display: flex;
     justify-content: flex-end;
+    background: linear-gradient(90deg, transparent, rgba(236, 55, 80, 0.08));
   }
 
   @media (max-width: 720px) {
@@ -1217,6 +1386,27 @@ import PixelIcon from '../components/PixelIcon.astro';
 
     .project-list {
       grid-template-columns: 1fr;
+    }
+
+    .project-tab,
+    .project-badges,
+    .project-summary,
+    .project-stats {
+      grid-template-columns: 1fr;
+    }
+
+    .project-tab {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .project-name {
+      max-width: 100%;
+    }
+
+    .project-score {
+      align-items: flex-start;
+      text-align: left;
     }
 
     .stat-row,
