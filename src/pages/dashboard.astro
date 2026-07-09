@@ -25,7 +25,7 @@ import Panel from '../components/Panel.astro';
 </Layout>
 
 <script type="module">
-  import { marked } from 'marked';
+  const { marked } = await import('https://esm.sh/marked@18');
 
   const WORKER_URL = 'https://braize-worker.braize.workers.dev';
 
