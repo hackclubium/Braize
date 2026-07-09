@@ -159,6 +159,7 @@ import PixelIcon from '../components/PixelIcon.astro';
   // Hackatime project list cache (5 min)
   const HT_CACHE_KEY = 'braize_hackatime_projects';
   const HT_CACHE_TTL = 5 * 60 * 1000;
+  const MAX_JOURNAL_IMAGE_BYTES = 900 * 1024;
   let htCache = null;
   let htCacheTs = 0;
   let htInflight = null;
@@ -258,6 +259,24 @@ import PixelIcon from '../components/PixelIcon.astro';
     return div.innerHTML;
   }
 
+  function insertAtCursor(textarea, text) {
+    const start = textarea.selectionStart ?? textarea.value.length;
+    const end = textarea.selectionEnd ?? textarea.value.length;
+    textarea.value = textarea.value.slice(0, start) + text + textarea.value.slice(end);
+    const cursor = start + text.length;
+    textarea.focus();
+    textarea.setSelectionRange(cursor, cursor);
+  }
+
+  function readImageAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error ?? new Error('image read failed'));
+      reader.readAsDataURL(file);
+    });
+  }
+
   function statusColor(status) {
     const s = (status || '').toLowerCase();
     if (s.includes('approved') || s.includes('rewarded') || s.includes('done')) return 'var(--hc-green)';
@@ -348,7 +367,14 @@ import PixelIcon from '../components/PixelIcon.astro';
           </div>
           <form class="journal-form" id="journal-form-${project.id}" hidden>
             <input type="text" name="title" placeholder="Entry title (optional)" maxlength="100" />
-            <textarea name="body" placeholder="What did you work on? (markdown supported)" rows="3" required></textarea>
+            <textarea name="body" placeholder="What did you work on? Drop notes, links, screenshots. Markdown supported." rows="5" required></textarea>
+            <div class="journal-tools">
+              <label class="btn-mini image-upload-btn">
+                <span>+ Image</span>
+                <input type="file" name="image" accept="image/png,image/jpeg,image/gif,image/webp" />
+              </label>
+              <span class="journal-help">PNG/JPG/GIF/WebP, max 900 KB. Inserts into markdown.</span>
+            </div>
             <div class="form-actions">
               <button type="submit" class="btn-mini btn-accent-mini">Post</button>
               <button type="button" class="btn-mini cancel-journal">Cancel</button>
@@ -434,6 +460,35 @@ import PixelIcon from '../components/PixelIcon.astro';
       journalForm.hidden = true;
       toggleJournalBtn.textContent = '+ Add Entry';
       journalForm.reset();
+    });
+
+    journalForm.image.addEventListener('change', async () => {
+      const file = journalForm.image.files?.[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        alert('Pick an image file.');
+        journalForm.image.value = '';
+        return;
+      }
+      if (file.size > MAX_JOURNAL_IMAGE_BYTES) {
+        alert('Image too large. Keep it under 900 KB.');
+        journalForm.image.value = '';
+        return;
+      }
+
+      const label = journalForm.querySelector('.image-upload-btn');
+      const labelText = label.querySelector('span');
+      labelText.textContent = 'Embedding...';
+      try {
+        const dataUrl = await readImageAsDataUrl(file);
+        const alt = file.name.replace(/\.[^.]+$/, '').replace(/[\[\]()]/g, '').trim() || 'journal image';
+        insertAtCursor(journalForm.body, `\n\n![${alt}](${dataUrl})\n`);
+      } catch (err) {
+        alert(`Failed to add image: ${err.message}`);
+      } finally {
+        labelText.textContent = '+ Image';
+        journalForm.image.value = '';
+      }
     });
 
     // Journal submit
@@ -976,6 +1031,8 @@ import PixelIcon from '../components/PixelIcon.astro';
     margin-top: 14px;
     border-top: 2px dotted var(--win-shadow);
     padding-top: 12px;
+    background:
+      linear-gradient(180deg, rgba(166, 51, 214, 0.08), transparent 90px);
   }
   .journal-header {
     display: flex;
@@ -985,46 +1042,111 @@ import PixelIcon from '../components/PixelIcon.astro';
   }
   .journal-header h4 {
     margin: 0;
-    font-size: 1rem;
+    font-family: var(--font-display);
+    font-size: 1.55rem;
+    font-weight: normal;
+    letter-spacing: 0.5px;
     color: var(--hc-purple);
+    text-shadow: 1px 1px 0 #fff;
   }
   .journal-form {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    margin-bottom: 12px;
-    padding: 10px;
-    background: var(--win-face);
+    gap: 8px;
+    margin-bottom: 14px;
+    padding: 12px;
+    background:
+      linear-gradient(135deg, #fff 0 58%, rgba(241, 196, 15, 0.2)),
+      var(--win-face);
     box-shadow:
       inset 1px 1px var(--win-dark-shadow),
+      inset -1px -1px var(--win-light-highlight),
+      4px 4px 0 rgba(0, 0, 0, 0.18);
+  }
+
+  .journal-form textarea {
+    min-height: 120px;
+    resize: vertical;
+    line-height: 1.45;
+  }
+
+  .journal-tools {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 6px;
+    background: rgba(0, 0, 0, 0.06);
+    box-shadow:
+      inset 1px 1px var(--win-shadow),
       inset -1px -1px var(--win-light-highlight);
+  }
+
+  .image-upload-btn {
+    position: relative;
+    overflow: hidden;
+    background: var(--hc-cyan);
+  }
+
+  .image-upload-btn input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .journal-help {
+    color: var(--win-shadow);
+    font-size: 0.74rem;
   }
   .journal-empty {
-    font-style: italic;
-    color: var(--win-shadow);
-    padding: 10px;
+    color: rgba(0, 0, 0, 0.68);
+    padding: 16px 12px;
     text-align: center;
     font-size: 0.85rem;
+    background:
+      repeating-linear-gradient(-45deg, rgba(255,255,255,0.55) 0 6px, rgba(0,0,0,0.03) 6px 12px),
+      var(--win-face);
+    box-shadow:
+      inset 1px 1px var(--win-shadow),
+      inset -1px -1px var(--win-light-highlight);
   }
   .journal-entry {
+    position: relative;
     background:
-      linear-gradient(90deg, #fff 0 4px, var(--win-face) 4px 100%);
-    padding: 8px 10px;
-    margin-bottom: 8px;
+      linear-gradient(90deg, var(--hc-yellow) 0 5px, transparent 5px),
+      linear-gradient(180deg, #fff 0, #fffdf0 100%);
+    padding: 12px 12px 12px 16px;
+    margin-bottom: 12px;
     box-shadow:
-      inset 1px 1px var(--win-dark-shadow),
-      inset -1px -1px var(--win-light-highlight);
+      inset -1px -1px var(--win-shadow),
+      inset 1px 1px var(--win-light-highlight),
+      5px 5px 0 rgba(0, 0, 0, 0.14);
+  }
+
+  .journal-entry::before {
+    content: 'LOG';
+    position: absolute;
+    right: 10px;
+    bottom: 8px;
+    font-family: var(--font-display);
+    font-size: 2rem;
+    color: rgba(166, 51, 214, 0.08);
+    pointer-events: none;
   }
   .journal-entry-head {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
     gap: 8px;
-    margin-bottom: 4px;
+    margin-bottom: 8px;
     flex-wrap: wrap;
+    border-bottom: 1px dotted rgba(0, 0, 0, 0.22);
+    padding-bottom: 6px;
   }
   .journal-title {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+    color: #111;
   }
   .journal-title.muted {
     color: var(--win-shadow);
@@ -1040,15 +1162,38 @@ import PixelIcon from '../components/PixelIcon.astro';
       inset 0 0 0 1px var(--hc-cyan);
   }
   .journal-body {
-    font-size: 0.85rem;
+    position: relative;
+    z-index: 1;
+    font-size: 0.9rem;
+    line-height: 1.5;
   }
   .journal-body :global(p) {
-    margin: 0.4em 0;
+    margin: 0.45em 0;
   }
   .journal-body :global(code) {
     background: rgba(0, 0, 0, 0.1);
     padding: 1px 4px;
     font-size: 0.85em;
+  }
+
+  .journal-body :global(a) {
+    color: var(--hc-blue);
+    font-weight: bold;
+  }
+
+  .journal-body :global(img) {
+    display: block;
+    max-width: 100%;
+    max-height: 360px;
+    margin: 10px 0;
+    object-fit: contain;
+    background: #111;
+    padding: 4px;
+    image-rendering: auto;
+    box-shadow:
+      inset -1px -1px var(--win-dark-shadow),
+      inset 1px 1px var(--win-light-highlight),
+      4px 4px 0 rgba(0, 0, 0, 0.22);
   }
 
   /* Project footer */
