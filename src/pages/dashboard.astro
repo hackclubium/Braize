@@ -124,6 +124,71 @@ import PixelIcon from '../components/PixelIcon.astro';
     return res.json();
   }
 
+  // Hackatime project list cache (5 min)
+  const HT_CACHE_KEY = 'braize_hackatime_projects';
+  const HT_CACHE_TTL = 5 * 60 * 1000;
+  let htCache = null;
+  let htCacheTs = 0;
+  let htInflight = null;
+
+  async function fetchHackatimeProjects(force = false) {
+    const now = Date.now();
+    if (!force && htCache && now - htCacheTs < HT_CACHE_TTL) return htCache;
+    if (htInflight) return htInflight;
+
+    htInflight = (async () => {
+      try {
+        const cached = sessionStorage.getItem(HT_CACHE_KEY);
+        if (!force && cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed.ts && now - parsed.ts < HT_CACHE_TTL) {
+            htCache = parsed.projects;
+            htCacheTs = parsed.ts;
+            return htCache;
+          }
+        }
+        const { projects } = await api('/hackatime/projects');
+        htCache = projects ?? [];
+        htCacheTs = now;
+        sessionStorage.setItem(HT_CACHE_KEY, JSON.stringify({ projects: htCache, ts: htCacheTs }));
+        return htCache;
+      } catch (err) {
+        // hackatime not connected or API error — return empty so select shows just the unlink option
+        htCache = [];
+        htCacheTs = now;
+        return htCache;
+      } finally {
+        htInflight = null;
+      }
+    })();
+
+    return htInflight;
+  }
+
+  async function populateHackatimeSelect(select, { force = false } = {}) {
+    const current = select.dataset.current || '';
+    const projects = await fetchHackatimeProjects(force);
+    // preserve current if it isn't in the list (could be a legacy/renamed entry)
+    const knownNames = new Set(projects.map((p) => p.name));
+    const opts = [];
+    opts.push(`<option value="">— not linked —</option>`);
+    if (current && !knownNames.has(current)) {
+      opts.push(`<option value="${escapeHtml(current)}">${escapeHtml(current)} (missing)</option>`);
+    }
+    for (const p of projects) {
+      const hrs = (p.totalSeconds / 3600).toFixed(1);
+      opts.push(`<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)} — ${hrs}h</option>`);
+    }
+    select.innerHTML = opts.join('');
+    select.value = current;
+    select.disabled = projects.length === 0 && !current;
+    if (projects.length === 0) {
+      select.title = 'Connect Hackatime and start a timer to populate this list';
+    } else {
+      select.title = '';
+    }
+  }
+
   // Win95-style confirm dialog
   const confirmOverlay = document.getElementById('confirm-overlay');
   const confirmMessage = document.getElementById('confirm-message');
@@ -226,9 +291,10 @@ import PixelIcon from '../components/PixelIcon.astro';
         <div class="project-stats">
           <div class="stat-row">
             <span class="stat-label-inline">Hackatime:</span>
-            <input type="text" class="hackatime-input" placeholder="link hackatime project" value="${escapeHtml(project.hackatime_project_name ?? '')}" />
-            <button type="button" class="btn-mini save-hackatime" title="Save hackatime project name">Save</button>
-            <button type="button" class="btn-mini check-stats" title="Check logged hours">↻ Hours</button>
+            <select class="hackatime-select" data-project-id="${project.id}" data-current="${escapeHtml(project.hackatime_project_name ?? '')}">
+              <option value="">— not linked —</option>
+            </select>
+            <button type="button" class="btn-mini refresh-hackatime" title="Refresh project list from Hackatime">↻</button>
           </div>
           <div class="hours-display">
             <div class="hours-bar"><div class="hours-fill" id="hours-fill-${project.id}"></div></div>
@@ -260,43 +326,46 @@ import PixelIcon from '../components/PixelIcon.astro';
       </div>
     `;
 
-    // Hackatime save
-    el.querySelector('.save-hackatime').addEventListener('click', async () => {
-      const value = el.querySelector('.hackatime-input').value.trim();
+    // Hackatime select — auto-save on change
+    const select = el.querySelector('.hackatime-select');
+    select.addEventListener('change', async () => {
+      const value = select.value || null;
       try {
         await api(`/projects/${project.id}`, {
           method: 'PATCH',
-          body: JSON.stringify({ hackatime_project_name: value || null }),
+          body: JSON.stringify({ hackatime_project_name: value }),
         });
-        project.hackatime_project_name = value || null;
-        const btn = el.querySelector('.save-hackatime');
-        btn.textContent = '✓';
-        setTimeout(() => (btn.textContent = 'Save'), 1200);
+        project.hackatime_project_name = value;
+        // auto-refresh hours on link
+        if (value) {
+          const hoursEl = document.getElementById(`hours-text-${project.id}`);
+          const fillEl = document.getElementById(`hours-fill-${project.id}`);
+          hoursEl.textContent = 'Checking...';
+          try {
+            const { totalSeconds } = await api(`/projects/${project.id}/hackatime-stats`);
+            project.total_seconds = totalSeconds;
+            const hrs = totalSeconds / 3600;
+            hoursEl.textContent = `${hrs.toFixed(1)} hrs`;
+            const pct = Math.min(100, (hrs / 20) * 100);
+            fillEl.style.width = pct + '%';
+            api('/projects').then(({ projects }) => updateStats(projects));
+          } catch {
+            hoursEl.textContent = 'no hours yet';
+            fillEl.style.width = '0%';
+          }
+        }
       } catch (err) {
         alert(`Failed to save: ${err.message}`);
+        // revert
+        select.value = project.hackatime_project_name ?? '';
       }
     });
 
-    // Hackatime check
-    el.querySelector('.check-stats').addEventListener('click', async () => {
-      const hoursEl = document.getElementById(`hours-text-${project.id}`);
-      const fillEl = document.getElementById(`hours-fill-${project.id}`);
-      hoursEl.textContent = 'Checking...';
-      try {
-        const { totalSeconds } = await api(`/projects/${project.id}/hackatime-stats`);
-        project.total_seconds = totalSeconds;
-        const hrs = totalSeconds / 3600;
-        hoursEl.textContent = `${hrs.toFixed(1)} hrs`;
-        // bar: scale 0-20h
-        const pct = Math.min(100, (hrs / 20) * 100);
-        fillEl.style.width = pct + '%';
-        // refresh top stats
-        api('/projects').then(({ projects }) => updateStats(projects));
-      } catch {
-        hoursEl.textContent = 'Link a Hackatime project + connect Hackatime first.';
-        fillEl.style.width = '0%';
-      }
+    // Refresh hackatime list
+    el.querySelector('.refresh-hackatime').addEventListener('click', async () => {
+      await populateHackatimeSelect(select, { force: true });
     });
+    populateHackatimeSelect(select);
 
     // Delete
     el.querySelector('.delete-project').addEventListener('click', async () => {

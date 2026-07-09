@@ -3,6 +3,7 @@ const HACKCLUB_ME_URL = 'https://auth.hackclub.com/api/v1/me';
 const HACKATIME_TOKEN_URL = 'https://hackatime.hackclub.com/oauth/token';
 const HACKATIME_ME_URL = 'https://hackatime.hackclub.com/api/v1/authenticated/me';
 const HACKATIME_STATS_URL = 'https://hackatime.hackclub.com/api/v1/users/my/stats';
+const HACKATIME_PROJECTS_URL = 'https://hackatime.hackclub.com/api/v1/users/my/projects';
 
 function corsHeaders(env) {
   return {
@@ -291,6 +292,30 @@ async function handleHackatimeStats(user, env, projectId) {
   return json({ totalSeconds }, 200, env);
 }
 
+async function handleListHackatimeProjects(user, env) {
+  if (!user.hackatime_access_token) return json({ error: 'hackatime not connected' }, 400, env);
+
+  const res = await fetch(HACKATIME_PROJECTS_URL, {
+    headers: { Authorization: `Bearer ${user.hackatime_access_token}` },
+  });
+
+  if (!res.ok) return json({ error: 'hackatime project list fetch failed' }, 502, env);
+
+  const body = await res.json();
+  const raw = Array.isArray(body) ? body : body.data ?? body.projects ?? [];
+
+  const projects = raw
+    .filter((p) => p && p.name)
+    .map((p) => ({
+      name: p.name,
+      totalSeconds: p.total_seconds ?? 0,
+      lastHeartbeatAt: p.last_heartbeat_at ?? p.updated_at ?? null,
+    }))
+    .sort((a, b) => b.totalSeconds - a.totalSeconds);
+
+  return json({ projects }, 200, env);
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -345,6 +370,11 @@ export default {
     if (match) {
       if (!user) return json({ error: 'unauthorized' }, 401, env);
       if (request.method === 'GET') return handleHackatimeStats(user, env, match[1]);
+    }
+
+    if (pathname === '/hackatime/projects' && request.method === 'GET') {
+      if (!user) return json({ error: 'unauthorized' }, 401, env);
+      return handleListHackatimeProjects(user, env);
     }
 
     return json({ error: 'not found' }, 404, env);
