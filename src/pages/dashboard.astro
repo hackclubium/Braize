@@ -1,26 +1,90 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Panel from '../components/Panel.astro';
+import PixelIcon from '../components/PixelIcon.astro';
 ---
 
 <Layout title="Dashboard - Braize" description="Manage your Braize projects and journal.">
   <main class="page">
-    <Panel id="projects" title="My Projects" icon="folder" color="var(--hc-blue)" color2="var(--hc-cyan)">
-      <div id="signed-out-notice" style="display:none;">
-        <p>Not connected. <a href={`${import.meta.env.BASE_URL}`}>Go connect your Hack Club account</a> first.</p>
+    <div class="dash-header">
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href={import.meta.env.BASE_URL}>Braize</a>
+        <span class="sep">›</span>
+        <span>Dashboard</span>
+      </nav>
+    </div>
+
+    <div id="signed-out-notice" class="signed-out" style="display:none;">
+      <Panel id="signed-out" title="Not Connected" icon="plug" color="var(--hc-red)" color2="var(--hc-orange)">
+        <p>You need to connect your Hack Club account before you can manage projects.</p>
+        <a class="btn btn-accent" href={import.meta.env.BASE_URL}>Go connect your account</a>
+      </Panel>
+    </div>
+
+    <div id="dashboard-body" style="display:none;">
+      <!-- Stats taskbar -->
+      <div class="stats-bar window">
+        <div class="stat">
+          <PixelIcon name="folder" color="var(--hc-blue)" />
+          <div class="stat-num" id="stat-projects">0</div>
+          <div class="stat-label">Projects</div>
+        </div>
+        <div class="stat">
+          <PixelIcon name="monitor" color="var(--hc-green)" />
+          <div class="stat-num" id="stat-hours">0.0</div>
+          <div class="stat-label">Hours Logged</div>
+        </div>
+        <div class="stat">
+          <PixelIcon name="check" color="var(--hc-yellow)" />
+          <div class="stat-num" id="stat-entries">0</div>
+          <div class="stat-label">Journal Entries</div>
+        </div>
+        <div class="stat">
+          <PixelIcon name="gift" color="var(--hc-purple)" />
+          <div class="stat-num" id="stat-status">—</div>
+          <div class="stat-label">Status</div>
+        </div>
       </div>
 
-      <div id="dashboard-body" style="display:none;">
-        <form id="new-project-form" class="project-form">
-          <input type="text" name="name" placeholder="Project name" required />
+      <Panel id="projects" title="My Projects" icon="folder" color="var(--hc-blue)" color2="var(--hc-cyan)">
+        <button type="button" class="btn btn-accent add-project-toggle" id="add-project-toggle">
+          <span id="add-project-toggle-label">+ New Project</span>
+        </button>
+
+        <form id="new-project-form" class="project-form" hidden>
+          <input type="text" name="name" placeholder="Project name" required maxlength="80" />
           <input type="text" name="repo_url" placeholder="Repo URL (optional)" />
           <textarea name="description" placeholder="Description (optional)" rows="2"></textarea>
-          <button type="submit" class="btn btn-accent">Add Project</button>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-accent">Create</button>
+            <button type="button" class="btn" id="cancel-add-project">Cancel</button>
+          </div>
         </form>
 
-        <div id="project-list"></div>
+        <div id="project-list" class="project-list">
+          <div class="loading">Loading projects...</div>
+        </div>
+      </Panel>
+    </div>
+
+    <!-- Win95-style confirm dialog -->
+    <div class="confirm-overlay" id="confirm-overlay" hidden>
+      <div class="confirm-dialog window">
+        <div class="title-bar" style="--title-color: var(--hc-red); --title-color-2: var(--hc-orange);">
+          <div class="title-bar-text">
+            <PixelIcon name="info" color="#fff" /> Confirm
+          </div>
+        </div>
+        <div class="window-body confirm-body">
+          <PixelIcon name="info" color="var(--hc-red)" />
+          <p id="confirm-message">Are you sure?</p>
+        </div>
+        <div class="confirm-actions">
+          <button type="button" class="btn" id="confirm-yes">Yes</button>
+          <button type="button" class="btn" id="confirm-no">No</button>
+        </div>
       </div>
-    </Panel>
+    </div>
   </main>
 </Layout>
 
@@ -36,6 +100,9 @@ import Panel from '../components/Panel.astro';
   const dashboardBody = document.getElementById('dashboard-body');
   const projectList = document.getElementById('project-list');
   const newProjectForm = document.getElementById('new-project-form');
+  const addProjectToggle = document.getElementById('add-project-toggle');
+  const addProjectToggleLabel = document.getElementById('add-project-toggle-label');
+  const cancelAddProject = document.getElementById('cancel-add-project');
 
   if (!sessionToken) {
     signedOutNotice.style.display = 'block';
@@ -57,107 +124,290 @@ import Panel from '../components/Panel.astro';
     return res.json();
   }
 
+  // Win95-style confirm dialog
+  const confirmOverlay = document.getElementById('confirm-overlay');
+  const confirmMessage = document.getElementById('confirm-message');
+  const confirmYes = document.getElementById('confirm-yes');
+  const confirmNo = document.getElementById('confirm-no');
+
+  function win95Confirm(message) {
+    return new Promise((resolve) => {
+      confirmMessage.textContent = message;
+      confirmOverlay.hidden = false;
+      const cleanup = () => {
+        confirmOverlay.hidden = true;
+        confirmYes.removeEventListener('click', onYes);
+        confirmNo.removeEventListener('click', onNo);
+      };
+      const onYes = () => { cleanup(); resolve(true); };
+      const onNo = () => { cleanup(); resolve(false); };
+      confirmYes.addEventListener('click', onYes);
+      confirmNo.addEventListener('click', onNo);
+      confirmNo.focus();
+    });
+  }
+
+  function escapeHtml(str) {
+    if (str == null) return '';
+    const div = document.createElement('div');
+    div.textContent = String(str);
+    return div.innerHTML;
+  }
+
+  function statusColor(status) {
+    const s = (status || '').toLowerCase();
+    if (s.includes('approved') || s.includes('rewarded') || s.includes('done')) return 'var(--hc-green)';
+    if (s.includes('review')) return 'var(--hc-yellow)';
+    if (s.includes('reject') || s.includes('fail')) return 'var(--hc-red)';
+    return 'var(--hc-cyan)';
+  }
+
+  function updateStats(projects) {
+    document.getElementById('stat-projects').textContent = projects.length;
+    const totalSeconds = projects.reduce((s, p) => s + (p.total_seconds || 0), 0);
+    document.getElementById('stat-hours').textContent = (totalSeconds / 3600).toFixed(1);
+    const totalEntries = projects.reduce((s, p) => s + (p.journal_count || 0), 0);
+    document.getElementById('stat-entries').textContent = totalEntries;
+    const statuses = [...new Set(projects.map((p) => p.status).filter(Boolean))];
+    document.getElementById('stat-status').textContent = statuses[0] ?? '—';
+  }
+
   async function loadProjects() {
-    projectList.textContent = 'Loading...';
-    const { projects } = await api('/projects');
+    projectList.innerHTML = '<div class="loading">Loading projects...</div>';
+    try {
+      const { projects } = await api('/projects');
+      renderProjectList(projects);
+      updateStats(projects);
+    } catch (err) {
+      projectList.innerHTML = `<div class="error">Failed to load projects. ${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  function renderProjectList(projects) {
     projectList.innerHTML = '';
+    if (projects.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-state';
+      empty.innerHTML = `
+        <div class="empty-art" aria-hidden="true">
+          <svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="64" height="64">
+            <rect x="1" y="4" width="6" height="2" fill="var(--hc-cyan)"/>
+            <rect x="1" y="6" width="14" height="8" fill="var(--hc-cyan)"/>
+            <rect x="3" y="8" width="10" height="1" fill="#fff"/>
+            <rect x="3" y="10" width="7" height="1" fill="#fff"/>
+            <rect x="3" y="12" width="9" height="1" fill="#fff"/>
+          </svg>
+        </div>
+        <h3>No projects yet</h3>
+        <p>Click <strong>+ New Project</strong> above to add your first browser build.</p>
+      `;
+      projectList.appendChild(empty);
+      return;
+    }
     projects.forEach((p) => projectList.appendChild(renderProject(p)));
-    if (projects.length === 0) projectList.textContent = 'No projects yet.';
   }
 
   function renderProject(project) {
     const el = document.createElement('div');
     el.className = 'project-card';
+    const hours = (project.total_seconds || 0) / 3600;
+    const hoursText = hours > 0 ? `${hours.toFixed(1)} hrs` : 'no hours yet';
+    const statusColorVal = statusColor(project.status);
+
     el.innerHTML = `
-      <div class="project-header">
-        <strong>${escapeHtml(project.name)}</strong>
-        <span class="project-status">${escapeHtml(project.status)}</span>
+      <div class="project-tab" style="background: ${statusColorVal};">
+        <span class="project-name">${escapeHtml(project.name)}</span>
+        <span class="project-status" style="color: rgba(255,255,255,0.95);">${escapeHtml(project.status || 'in progress')}</span>
       </div>
-      ${project.description ? `<p>${escapeHtml(project.description)}</p>` : ''}
-      ${project.repo_url ? `<p><a href="${escapeHtml(project.repo_url)}" target="_blank" rel="noopener">${escapeHtml(project.repo_url)}</a></p>` : ''}
+      <div class="project-body">
+        ${project.description ? `<p class="project-desc">${escapeHtml(project.description)}</p>` : ''}
+        ${project.repo_url ? `<p class="project-repo"><a href="${escapeHtml(project.repo_url)}" target="_blank" rel="noopener">${escapeHtml(project.repo_url)}</a></p>` : ''}
 
-      <div class="hackatime-link">
-        <input type="text" class="hackatime-input" placeholder="Hackatime project name" value="${escapeHtml(project.hackatime_project_name ?? '')}" />
-        <button type="button" class="btn save-hackatime">Link</button>
-        <button type="button" class="btn check-stats">Check hours</button>
-        <span class="hackatime-hours"></span>
+        <div class="project-stats">
+          <div class="stat-row">
+            <span class="stat-label-inline">Hackatime:</span>
+            <input type="text" class="hackatime-input" placeholder="link hackatime project" value="${escapeHtml(project.hackatime_project_name ?? '')}" />
+            <button type="button" class="btn-mini save-hackatime" title="Save hackatime project name">Save</button>
+            <button type="button" class="btn-mini check-stats" title="Check logged hours">↻ Hours</button>
+          </div>
+          <div class="hours-display">
+            <div class="hours-bar"><div class="hours-fill" id="hours-fill-${project.id}"></div></div>
+            <span class="hours-text" id="hours-text-${project.id}">${hoursText}</span>
+          </div>
+        </div>
+
+        <div class="journal-section">
+          <div class="journal-header">
+            <h4>Journal</h4>
+            <button type="button" class="btn-mini toggle-journal" data-target="journal-form-${project.id}">+ Add Entry</button>
+          </div>
+          <form class="journal-form" id="journal-form-${project.id}" hidden>
+            <input type="text" name="title" placeholder="Entry title (optional)" maxlength="100" />
+            <textarea name="body" placeholder="What did you work on? (markdown supported)" rows="3" required></textarea>
+            <div class="form-actions">
+              <button type="submit" class="btn-mini btn-accent-mini">Post</button>
+              <button type="button" class="btn-mini cancel-journal">Cancel</button>
+            </div>
+          </form>
+          <div class="journal-entries" id="journal-${project.id}">
+            <div class="loading">Loading journal...</div>
+          </div>
+        </div>
+
+        <div class="project-footer">
+          <button type="button" class="btn-mini danger delete-project">Delete Project</button>
+        </div>
       </div>
-
-      <div class="journal-section">
-        <h4>Journal</h4>
-        <form class="journal-form">
-          <input type="text" name="title" placeholder="Entry title (optional)" />
-          <textarea name="body" placeholder="What did you work on? (markdown supported)" rows="3" required></textarea>
-          <button type="submit" class="btn">Add Entry</button>
-        </form>
-        <div class="journal-entries">Loading...</div>
-      </div>
-
-      <button type="button" class="btn delete-project">Delete Project</button>
     `;
 
+    // Hackatime save
     el.querySelector('.save-hackatime').addEventListener('click', async () => {
       const value = el.querySelector('.hackatime-input').value.trim();
-      await api(`/projects/${project.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ hackatime_project_name: value || null }),
-      });
-      project.hackatime_project_name = value || null;
-    });
-
-    el.querySelector('.check-stats').addEventListener('click', async () => {
-      const hoursEl = el.querySelector('.hackatime-hours');
-      hoursEl.textContent = 'Loading...';
       try {
-        const { totalSeconds } = await api(`/projects/${project.id}/hackatime-stats`);
-        hoursEl.textContent = `${(totalSeconds / 3600).toFixed(1)} hrs logged`;
-      } catch {
-        hoursEl.textContent = 'Link a Hackatime project and connect Hackatime first.';
+        await api(`/projects/${project.id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ hackatime_project_name: value || null }),
+        });
+        project.hackatime_project_name = value || null;
+        const btn = el.querySelector('.save-hackatime');
+        btn.textContent = '✓';
+        setTimeout(() => (btn.textContent = 'Save'), 1200);
+      } catch (err) {
+        alert(`Failed to save: ${err.message}`);
       }
     });
 
-    el.querySelector('.delete-project').addEventListener('click', async () => {
-      if (!confirm(`Delete "${project.name}"? This also deletes its journal entries.`)) return;
-      await api(`/projects/${project.id}`, { method: 'DELETE' });
-      el.remove();
+    // Hackatime check
+    el.querySelector('.check-stats').addEventListener('click', async () => {
+      const hoursEl = document.getElementById(`hours-text-${project.id}`);
+      const fillEl = document.getElementById(`hours-fill-${project.id}`);
+      hoursEl.textContent = 'Checking...';
+      try {
+        const { totalSeconds } = await api(`/projects/${project.id}/hackatime-stats`);
+        project.total_seconds = totalSeconds;
+        const hrs = totalSeconds / 3600;
+        hoursEl.textContent = `${hrs.toFixed(1)} hrs`;
+        // bar: scale 0-20h
+        const pct = Math.min(100, (hrs / 20) * 100);
+        fillEl.style.width = pct + '%';
+        // refresh top stats
+        api('/projects').then(({ projects }) => updateStats(projects));
+      } catch {
+        hoursEl.textContent = 'Link a Hackatime project + connect Hackatime first.';
+        fillEl.style.width = '0%';
+      }
     });
 
-    const journalEntries = el.querySelector('.journal-entries');
-    loadJournal(project.id, journalEntries);
+    // Delete
+    el.querySelector('.delete-project').addEventListener('click', async () => {
+      const ok = await win95Confirm(`Delete "${project.name}"? This also deletes its journal entries.`);
+      if (!ok) return;
+      try {
+        await api(`/projects/${project.id}`, { method: 'DELETE' });
+        el.remove();
+        const { projects } = await api('/projects');
+        renderProjectList(projects);
+        updateStats(projects);
+      } catch (err) {
+        alert(`Failed to delete: ${err.message}`);
+      }
+    });
 
-    el.querySelector('.journal-form').addEventListener('submit', async (e) => {
+    // Journal toggle
+    const journalForm = el.querySelector(`#journal-form-${project.id}`);
+    const toggleJournalBtn = el.querySelector('.toggle-journal');
+    toggleJournalBtn.addEventListener('click', () => {
+      const hidden = journalForm.hidden;
+      journalForm.hidden = !hidden;
+      toggleJournalBtn.textContent = hidden ? '× Cancel' : '+ Add Entry';
+    });
+    el.querySelector('.cancel-journal').addEventListener('click', () => {
+      journalForm.hidden = true;
+      toggleJournalBtn.textContent = '+ Add Entry';
+      journalForm.reset();
+    });
+
+    // Journal submit
+    journalForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const form = e.target;
       const title = form.title.value.trim() || null;
       const body = form.body.value.trim();
       if (!body) return;
-      await api(`/projects/${project.id}/journal`, { method: 'POST', body: JSON.stringify({ title, body }) });
-      form.reset();
-      loadJournal(project.id, journalEntries);
+      try {
+        await api(`/projects/${project.id}/journal`, {
+          method: 'POST',
+          body: JSON.stringify({ title, body }),
+        });
+        form.reset();
+        journalForm.hidden = true;
+        toggleJournalBtn.textContent = '+ Add Entry';
+        await loadJournal(project.id, el.querySelector(`#journal-${project.id}`));
+        const { projects } = await api('/projects');
+        updateStats(projects);
+      } catch (err) {
+        alert(`Failed to post: ${err.message}`);
+      }
     });
+
+    // Initial bar fill
+    if (hours > 0) {
+      const pct = Math.min(100, (hours / 20) * 100);
+      requestAnimationFrame(() => {
+        document.getElementById(`hours-fill-${project.id}`).style.width = pct + '%';
+      });
+    }
+
+    // Load journal
+    loadJournal(project.id, el.querySelector(`#journal-${project.id}`));
 
     return el;
   }
 
   async function loadJournal(projectId, container) {
-    container.textContent = 'Loading...';
-    const { entries } = await api(`/projects/${projectId}/journal`);
-    container.innerHTML = '';
-    if (entries.length === 0) {
-      container.textContent = 'No entries yet.';
-      return;
+    try {
+      const { entries } = await api(`/projects/${projectId}/journal`);
+      container.innerHTML = '';
+      if (entries.length === 0) {
+        container.innerHTML = '<div class="journal-empty">No entries yet. Ship something and tell the world.</div>';
+        return;
+      }
+      entries.forEach((entry) => {
+        const entryEl = document.createElement('div');
+        entryEl.className = 'journal-entry';
+        const date = new Date(entry.created_at + 'Z');
+        const dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+        entryEl.innerHTML = `
+          <div class="journal-entry-head">
+            ${entry.title ? `<strong class="journal-title">${escapeHtml(entry.title)}</strong>` : '<em class="journal-title muted">untitled</em>'}
+            <span class="journal-pill">${dateStr} · ${timeStr}</span>
+          </div>
+          <div class="journal-body">${marked.parse(entry.body)}</div>
+        `;
+        container.appendChild(entryEl);
+      });
+    } catch (err) {
+      container.innerHTML = `<div class="error">Failed to load journal. ${escapeHtml(err.message)}</div>`;
     }
-    entries.forEach((entry) => {
-      const entryEl = document.createElement('div');
-      entryEl.className = 'journal-entry';
-      entryEl.innerHTML = `
-        ${entry.title ? `<strong>${escapeHtml(entry.title)}</strong>` : ''}
-        <div class="journal-body">${marked.parse(entry.body)}</div>
-        <span class="journal-date">${new Date(entry.created_at + 'Z').toLocaleString()}</span>
-      `;
-      container.appendChild(entryEl);
-    });
   }
+
+  // Add project toggle
+  addProjectToggle.addEventListener('click', () => {
+    const hidden = newProjectForm.hidden;
+    newProjectForm.hidden = !hidden;
+    addProjectToggleLabel.textContent = hidden ? '× Close Form' : '+ New Project';
+    if (!hidden) {
+      newProjectForm.reset();
+    } else {
+      newProjectForm.querySelector('[name="name"]').focus();
+    }
+  });
+  cancelAddProject.addEventListener('click', () => {
+    newProjectForm.hidden = true;
+    newProjectForm.reset();
+    addProjectToggleLabel.textContent = '+ New Project';
+  });
 
   newProjectForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -166,85 +416,342 @@ import Panel from '../components/Panel.astro';
     if (!name) return;
     const repo_url = form.repo_url.value.trim() || null;
     const description = form.description.value.trim() || null;
-    await api('/projects', { method: 'POST', body: JSON.stringify({ name, repo_url, description }) });
-    form.reset();
-    loadProjects();
+    try {
+      await api('/projects', {
+        method: 'POST',
+        body: JSON.stringify({ name, repo_url, description }),
+      });
+      form.reset();
+      newProjectForm.hidden = true;
+      addProjectToggleLabel.textContent = '+ New Project';
+      await loadProjects();
+    } catch (err) {
+      alert(`Failed to create project: ${err.message}`);
+    }
   });
-
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-  }
 </script>
 
 <style>
-  .project-form,
-  .journal-form {
+  /* Dashboard header */
+  .dash-header {
+    margin: 24px 0 14px;
+  }
+  .breadcrumbs {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.85);
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .breadcrumbs a {
+    color: var(--hc-yellow);
+    text-decoration: none;
+  }
+  .breadcrumbs a:hover {
+    text-decoration: underline;
+  }
+  .breadcrumbs .sep {
+    opacity: 0.6;
+  }
+
+  /* Stats taskbar */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0;
+    padding: 0;
+    margin-bottom: 20px;
+  }
+  .stat {
+    padding: 14px 12px;
+    text-align: center;
+    background: var(--win-face);
+    border-right: 1px solid var(--win-shadow);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .stat:last-child {
+    border-right: none;
+  }
+  .stat :global(svg.pixel-icon) {
+    width: 22px;
+    height: 22px;
+    image-rendering: pixelated;
+  }
+  .stat-num {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    line-height: 1;
+    color: var(--win-text);
+    margin-top: 2px;
+  }
+  .stat-label {
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--win-shadow);
+  }
+
+  /* Add project toggle */
+  .add-project-toggle {
+    margin-bottom: 14px;
+  }
+  .project-form[hidden] {
+    display: none;
+  }
+  .project-form {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    margin-bottom: 14px;
+    margin-bottom: 18px;
+    padding: 12px;
+    background: #fff;
+    box-shadow:
+      inset -1px -1px var(--win-shadow),
+      inset 1px 1px var(--win-dark-shadow);
   }
-
   .project-form input,
   .project-form textarea,
   .journal-form input,
   .journal-form textarea,
   .hackatime-input {
     font-family: var(--font-body);
+    font-size: 0.9rem;
     padding: 6px 8px;
+    background: var(--win-face);
     box-shadow:
       inset 1px 1px var(--win-dark-shadow),
       inset -1px -1px var(--win-light-highlight);
     border: none;
   }
+  .form-actions {
+    display: flex;
+    gap: 6px;
+  }
 
-  .project-card {
+  /* Project list */
+  .project-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .project-list .loading {
+    padding: 20px;
+    text-align: center;
+    color: var(--win-shadow);
+    font-style: italic;
+  }
+  .project-list .error {
+    padding: 14px;
+    background: #fee;
+    color: var(--hc-red);
+    box-shadow:
+      inset 1px 1px var(--hc-red),
+      inset -1px -1px #fcc;
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
     background: #fff;
-    padding: 12px;
-    margin-bottom: 14px;
     box-shadow:
       inset -1px -1px var(--win-shadow),
       inset 1px 1px var(--win-dark-shadow);
   }
+  .empty-art {
+    margin-bottom: 12px;
+  }
+  .empty-state h3 {
+    margin-bottom: 6px;
+  }
+  .empty-state p {
+    color: var(--win-shadow);
+    font-size: 0.9rem;
+  }
 
-  .project-header {
+  /* Project card — folder tab style */
+  .project-card {
+    background: #fff;
+    box-shadow:
+      inset -1px -1px var(--win-shadow),
+      inset 1px 1px var(--win-dark-shadow);
+    overflow: hidden;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+  .project-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow:
+      inset -1px -1px var(--win-shadow),
+      inset 1px 1px var(--win-dark-shadow),
+      3px 3px 0 rgba(0, 0, 0, 0.25),
+      0 0 14px rgba(91, 192, 222, 0.2);
+  }
+  .project-tab {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 5px 10px;
+    color: #fff;
+    font-family: var(--font-body);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.25),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.25);
   }
-
+  .project-name {
+    font-weight: bold;
+    font-size: 0.95rem;
+  }
   .project-status {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     text-transform: uppercase;
-    color: var(--win-shadow);
+    letter-spacing: 0.5px;
+    font-weight: bold;
+    background: rgba(0, 0, 0, 0.18);
+    padding: 2px 6px;
+  }
+  .project-body {
+    padding: 12px 14px;
+  }
+  .project-desc {
+    margin: 0 0 8px;
+    color: var(--win-text);
+  }
+  .project-repo {
+    margin: 0 0 10px;
+    font-size: 0.85rem;
   }
 
-  .hackatime-link {
+  /* Project stats row */
+  .project-stats {
+    background: var(--win-face);
+    padding: 10px;
+    margin: 10px 0;
+    box-shadow:
+      inset 1px 1px var(--win-dark-shadow),
+      inset -1px -1px var(--win-light-highlight);
+  }
+  .stat-row {
     display: flex;
     align-items: center;
     gap: 6px;
     flex-wrap: wrap;
-    margin: 8px 0;
+    margin-bottom: 8px;
   }
-
+  .stat-label-inline {
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: var(--win-shadow);
+  }
   .hackatime-input {
     flex: 1;
-    min-width: 140px;
-  }
-
-  .hackatime-hours {
+    min-width: 120px;
     font-size: 0.85rem;
+  }
+  .hours-display {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hours-bar {
+    flex: 1;
+    height: 10px;
+    background: #000;
+    box-shadow:
+      inset 1px 1px var(--win-dark-shadow),
+      inset -1px -1px var(--win-light-highlight);
+    overflow: hidden;
+    min-width: 60px;
+  }
+  .hours-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--hc-green), var(--hc-cyan));
+    box-shadow: 0 0 6px var(--hc-green);
+    transition: width 0.6s ease;
+  }
+  .hours-text {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
     color: var(--hc-green);
+    min-width: 70px;
+    text-align: right;
   }
 
+  /* Mini buttons */
+  .btn-mini {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 4px 8px;
+    background: var(--win-face);
+    color: var(--win-text);
+    text-decoration: none;
+    box-shadow:
+      inset -1px -1px var(--win-dark-shadow),
+      inset 1px 1px var(--win-light-highlight),
+      inset -2px -2px var(--win-shadow),
+      inset 2px 2px var(--win-highlight);
+    cursor: pointer;
+    border: none;
+  }
+  .btn-mini:active {
+    box-shadow:
+      inset 1px 1px var(--win-dark-shadow),
+      inset -1px -1px var(--win-light-highlight),
+      inset 2px 2px var(--win-shadow),
+      inset -2px -2px var(--win-highlight);
+  }
+  .btn-mini.danger {
+    color: var(--hc-red);
+  }
+  .btn-mini.danger:hover {
+    background: var(--hc-red);
+    color: #fff;
+  }
+  .btn-accent-mini {
+    background: var(--hc-yellow);
+  }
+
+  /* Journal section */
   .journal-section {
-    margin-top: 12px;
-    border-top: 1px solid var(--win-shadow);
-    padding-top: 10px;
+    margin-top: 14px;
+    border-top: 1px dashed var(--win-shadow);
+    padding-top: 12px;
   }
-
+  .journal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .journal-header h4 {
+    margin: 0;
+    font-size: 0.95rem;
+  }
+  .journal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+    padding: 10px;
+    background: var(--win-face);
+    box-shadow:
+      inset 1px 1px var(--win-dark-shadow),
+      inset -1px -1px var(--win-light-highlight);
+  }
+  .journal-empty {
+    font-style: italic;
+    color: var(--win-shadow);
+    padding: 10px;
+    text-align: center;
+    font-size: 0.85rem;
+  }
   .journal-entry {
     background: var(--win-face);
     padding: 8px 10px;
@@ -253,19 +760,91 @@ import Panel from '../components/Panel.astro';
       inset 1px 1px var(--win-dark-shadow),
       inset -1px -1px var(--win-light-highlight);
   }
-
-  .journal-body {
+  .journal-entry-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+  }
+  .journal-title {
     font-size: 0.9rem;
   }
-
+  .journal-title.muted {
+    color: var(--win-shadow);
+    font-weight: normal;
+  }
+  .journal-pill {
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    background: #000;
+    color: var(--hc-cyan);
+    padding: 1px 6px;
+    box-shadow:
+      inset 0 0 0 1px var(--hc-cyan);
+  }
+  .journal-body {
+    font-size: 0.85rem;
+  }
   .journal-body :global(p) {
     margin: 0.4em 0;
   }
+  .journal-body :global(code) {
+    background: rgba(0, 0, 0, 0.1);
+    padding: 1px 4px;
+    font-size: 0.85em;
+  }
 
-  .journal-date {
-    display: block;
-    font-size: 0.7rem;
-    color: var(--win-shadow);
-    margin-top: 4px;
+  /* Project footer */
+  .project-footer {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--win-shadow);
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  /* Confirm dialog */
+  .confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9000;
+  }
+  .confirm-overlay[hidden] {
+    display: none;
+  }
+  .confirm-dialog {
+    min-width: 320px;
+    max-width: 480px;
+  }
+  .confirm-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+  }
+  .confirm-body :global(svg.pixel-icon) {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    image-rendering: pixelated;
+  }
+  .confirm-body p {
+    margin: 0;
+    flex: 1;
+  }
+  .confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 0 16px 14px;
+  }
+  .confirm-actions .btn {
+    min-width: 70px;
   }
 </style>
