@@ -1,4 +1,5 @@
 ---
+
 import '../styles/global.css';
 
 interface Props {
@@ -8,8 +9,23 @@ interface Props {
 
 const { title, description } = Astro.props;
 
-// BASE_URL doesn't reliably include a trailing slash across dev/build, so normalize it.
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const desktopIcons = [
+  { href: '#about', label: 'About', icon: 'folder', color: 'var(--hc-blue)' },
+  { href: '#what-counts', label: 'Counts', icon: 'check', color: 'var(--hc-green)' },
+  { href: '#how-it-works', label: 'How', icon: 'gear', color: 'var(--hc-orange)' },
+  { href: '#connect', label: 'Connect', icon: 'plug', color: 'var(--hc-cyan)' },
+  { href: '#prize', label: 'Prize', icon: 'gift', color: 'var(--hc-purple)' },
+];
+
+const iconSvgs = {
+  folder: '<rect x="1" y="4" width="6" height="2" fill="currentColor"/><rect x="1" y="6" width="14" height="8" fill="currentColor"/>',
+  check: '<rect x="2" y="8" width="2" height="2" fill="currentColor"/><rect x="4" y="10" width="2" height="2" fill="currentColor"/><rect x="6" y="12" width="2" height="2" fill="currentColor"/><rect x="8" y="10" width="2" height="2" fill="currentColor"/><rect x="10" y="8" width="2" height="2" fill="currentColor"/><rect x="12" y="6" width="2" height="2" fill="currentColor"/>',
+  gear: '<rect x="5" y="5" width="6" height="6" fill="currentColor"/><rect x="7" y="2" width="2" height="3" fill="currentColor"/><rect x="7" y="11" width="2" height="3" fill="currentColor"/><rect x="2" y="7" width="3" height="2" fill="currentColor"/><rect x="11" y="7" width="3" height="2" fill="currentColor"/>',
+  plug: '<rect x="6" y="1" width="2" height="5" fill="currentColor"/><rect x="9" y="1" width="2" height="5" fill="currentColor"/><rect x="5" y="6" width="6" height="6" fill="currentColor"/><rect x="7" y="12" width="2" height="3" fill="currentColor"/>',
+  gift: '<rect x="2" y="7" width="12" height="7" fill="currentColor"/><rect x="1" y="5" width="14" height="2" fill="currentColor"/><rect x="5" y="2" width="2" height="3" fill="currentColor"/><rect x="9" y="2" width="2" height="3" fill="currentColor"/>',
+};
 ---
 
 <!doctype html>
@@ -22,6 +38,89 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     <title>{title}</title>
   </head>
   <body>
+    <!-- particle field -->
+    <div class="particle-field" id="particle-field" aria-hidden="true"></div>
+
+    <!-- floating desktop icons -->
+    <nav class="desktop-icons" aria-label="Quick jump">
+      {desktopIcons.map((item) => (
+        <a href={item.href} class="desktop-icon" style={`color: ${item.color}`}>
+          <svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true" set:html={iconSvgs[item.icon] ?? ''}></svg>
+          {item.label}
+        </a>
+      ))}
+    </nav>
+
+    <!-- splash screen -->
+    <div class="splash" id="splash">
+      <div class="splash-inner">
+        <h1>Braize</h1>
+        <p class="tagline">loading cool stuff...</p>
+      </div>
+    </div>
+
+    <!-- BSOD easter egg -->
+    <div class="bsod" id="bsod">
+      <h2>BRAIZE</h2>
+      <p>A fatal exception 0E has occurred at 0028:C001D00D in VXD BRAIZE(01) + 0000B33F.</p>
+      <p>The current application will be terminated.</p>
+      <p>* Press any key to continue</p>
+      <p>* Press CTRL+ALT+DEL to restart the web. You will lose any unsaved code in all repositories.</p>
+      <p class="blink-cursor">_</p>
+    </div>
+
     <slot />
+
+    <script>
+      // particles
+      (function () {
+        const container = document.getElementById('particle-field');
+        if (!container) return;
+        const colors = ['#5bc0de', '#33d6a6', '#ec3750', '#f1c40f', '#a633d6', '#ff8c37'];
+        for (let i = 0; i < 30; i++) {
+          const p = document.createElement('div');
+          p.className = 'particle';
+          p.style.left = Math.random() * 100 + '%';
+          p.style.animationDuration = (8 + Math.random() * 14) + 's';
+          p.style.animationDelay = Math.random() * 10 + 's';
+          p.style.width = (2 + Math.random() * 4) + 'px';
+          p.style.height = p.style.width;
+          p.style.background = colors[Math.floor(Math.random() * colors.length)];
+          container.appendChild(p);
+        }
+      })();
+
+      // BSOD easter egg: triple-click anywhere on desktop (not on windows)
+      let clickCount = 0;
+      let clickTimer;
+      document.addEventListener('click', (e) => {
+        const target = e.target;
+        if (target.closest('.window') || target.closest('.desktop-icons') || target.closest('.splash') || target.closest('.bsod')) return;
+        clickCount++;
+        if (clickCount === 3) {
+          clickCount = 0;
+          const bsod = document.getElementById('bsod');
+          if (bsod) {
+            bsod.classList.add('active');
+            setTimeout(() => bsod.classList.remove('active'), 4000);
+          }
+        }
+        clearTimeout(clickTimer);
+        clickTimer = window.setTimeout(() => { clickCount = 0; }, 800);
+      });
+
+      document.getElementById('bsod')?.addEventListener('click', function () {
+        this.classList.remove('active');
+      });
+
+      // splash auto-hide
+      window.addEventListener('load', () => {
+        const splash = document.getElementById('splash');
+        if (splash) {
+          setTimeout(() => splash.classList.add('hide'), 1200);
+          setTimeout(() => splash.remove(), 1800);
+        }
+      });
+    </script>
   </body>
 </html>

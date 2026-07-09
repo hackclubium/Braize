@@ -59,7 +59,7 @@ const faqs = [
 <div class="prize-block">
   <div class="card-grid">
     {tiers.map((tier) => (
-      <div class="card">
+      <div class="card" style={`--glow: ${tier.color}`}>
         <PixelIcon name={tier.icon} color={tier.color} />
         <h3>{tier.title}</h3>
         <p>{tier.body}</p>

@@ -1,4 +1,5 @@
 ---
+
 import PixelIcon from './PixelIcon.astro';
 
 const tabs = [
@@ -22,6 +23,14 @@ const tabs = [
     </div>
   </div>
 
+  <div class="marquee" aria-hidden="true">
+    <span>&#9733; Hack Club YSWS &#9733; You Ship, We Ship &#9733; Build a browser. Ship it. Get rewarded. &#9733; #braize on Slack &#9733; Deadline: PLACEHOLDER &#9733;</span>
+  </div>
+
+  <div class="loading-bar" id="loading-bar">
+    <div class="loading-bar-inner" id="loading-bar-inner"></div>
+  </div>
+
   <nav class="tab-strip" aria-label="Section navigation" id="section-nav">
     {tabs.map((tab) => <a href={tab.href}>{tab.label}</a>)}
   </nav>
@@ -37,7 +46,7 @@ const tabs = [
   </div>
 
   <div class="window-body hero-body">
-    <h1>Ship anything browser-related.</h1>
+    <h1 id="hero-heading">Ship anything browser-related.</h1>
     <p class="hero-sub">
       Braize is a Hack Club YSWS. Build a browser, an extension, a browsing
       buddy, or whatever "browsing" means to you. Ship it, and we'll ship you
@@ -50,7 +59,7 @@ const tabs = [
     </div>
   </div>
 
-  <div class="status-bar">Ready.</div>
+  <div class="status-bar" id="status-bar">Ready.</div>
 </div>
 
 <script>
@@ -95,11 +104,30 @@ const tabs = [
   }
 
   const closeBtn = document.getElementById('close-btn');
+  const statusBar = document.getElementById('status-bar');
+
   closeBtn?.addEventListener('click', () => {
+    document.body.classList.add('shake');
+    setTimeout(() => document.body.classList.remove('shake'), 400);
+
+    const heading = document.getElementById('hero-heading');
+    if (heading) {
+      heading.setAttribute('data-text', heading.textContent || '');
+      heading.classList.add('glitch');
+      setTimeout(() => {
+        heading.classList.remove('glitch');
+        heading.removeAttribute('data-text');
+      }, 400);
+    }
+
     closeBtn.classList.remove('wobble');
-    // restart animation
     void closeBtn.offsetWidth;
     closeBtn.classList.add('wobble');
+
+    if (statusBar) statusBar.textContent = '⚠ Do not close this window.';
+    setTimeout(() => {
+      if (statusBar) statusBar.textContent = 'Ready.';
+    }, 2000);
   });
 
   const navLinks = document.querySelectorAll('#section-nav a');
@@ -126,6 +154,20 @@ const tabs = [
 
     sections.forEach((section) => observer.observe(section));
   }
+
+  // loading bar fills on scroll
+  const loadBar = document.getElementById('loading-bar');
+  const loadBarInner = document.getElementById('loading-bar-inner');
+  if (loadBarInner) {
+    const updateLoadBar = () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const pct = docHeight > 0 ? Math.min(100, (scrollTop / docHeight) * 100) : 0;
+      loadBarInner.style.width = pct + '%';
+    };
+    window.addEventListener('scroll', updateLoadBar, { passive: true });
+    updateLoadBar();
+  }
 </script>
 
 <style>
@@ -136,6 +178,7 @@ const tabs = [
   .hero-body {
     text-align: center;
     padding: 40px 20px 32px;
+    position: relative;
   }
 
   .hero-sub {

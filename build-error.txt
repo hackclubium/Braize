@@ -1,0 +1,22 @@
+﻿13:06:54 [types] Generated 478ms
+13:06:54 [build] output: "static"
+13:06:54 [build] directory: C:\Users\manoj\StarDance\Braize\dist\
+13:06:54 [build] Collecting build info...
+13:06:54 [build] Γ£ô Completed in 488ms.
+13:06:54 [build] Building static entrypoints...
+node.exe : 13:06:55 [ERROR] [vite] [31mx[39m Build failed in 898ms
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Users\manoj\AppData\Roaming\ ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (13:06:55 [ERROR...failed in 898ms:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Expected ")" but found ":"
+  Location:
+    C:/Users/manoj/StarDance/Braize/src/layouts/Layout.astro:57:266
+  Stack trace:
+    at failureErrorWithLog (C:\Users\manoj\StarDance\Braize\node_modules\esbuild\lib\main.js:1472:15)
+    at responseCallbacks.<computed> (C:\Users\manoj\StarDance\Braize\node_modules\esbuild\lib\main.js:622:9)
+    at Socket.readFromStdout (C:\Users\manoj\StarDance\Braize\node_modules\esbuild\lib\main.js:600:7)
+    at addChunk (node:internal/streams/readable:563:12)
+    at Readable.push (node:internal/streams/readable:394:5)

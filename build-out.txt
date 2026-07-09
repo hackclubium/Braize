@@ -1,0 +1,28 @@
+﻿13:35:46 [types] Generated 101ms
+13:35:46 [build] output: "static"
+13:35:46 [build] directory: C:\Users\manoj\StarDance\Braize\dist\
+13:35:46 [build] Collecting build info...
+13:35:46 [build] Γ£ô Completed in 116ms.
+13:35:46 [build] Building static entrypoints...
+13:35:47 [vite] [32mΓ£ô built in 1.26s[39m
+13:35:47 [build] Γ£ô Completed in 1.30s.
+
+ building client (vite) 
+13:35:47 [vite] transforming...
+13:35:47 [vite] [32mΓ£ô[39m 5 modules transformed.
+13:35:47 [vite] rendering chunks...
+13:35:47 [vite] computing gzip size...
+13:35:47 [vite] [2mdist/[22m[36m_astro/hoisted.BSuykilD.js  [39m[1m[2m1.38 kB[22m[1m[22m[2m Γöé gzip: 0.62 kB[22m
+13:35:47 [vite] [2mdist/[22m[36m_astro/hoisted.DaIWsOKT.js  [39m[1m[2m1.72 kB[22m[1m[22m[2m Γöé gzip: 0.84 kB[22m
+13:35:47 [vite] [32mΓ£ô built in 54ms[39m
+
+ generating static routes 
+13:35:47 Γû╢ src/pages/dashboard.astro
+13:35:47   ΓööΓöÇ /dashboard/index.html (+19ms)
+13:35:47 Γû╢ src/pages/index.astro
+13:35:47   ΓööΓöÇ /index.html (+11ms)
+13:35:47 Γ£ô Completed in 58ms.
+
+13:35:47 [build] 2 page(s) built in 1.57s
+13:35:47 [build] Complete!
+
