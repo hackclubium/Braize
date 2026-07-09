@@ -22,6 +22,32 @@ import PixelIcon from '../components/PixelIcon.astro';
     </div>
 
     <div id="dashboard-body" style="display:none;">
+      <section class="dash-hero window">
+        <div class="title-bar" style="--title-color: var(--hc-purple); --title-color-2: var(--hc-blue);">
+          <div class="title-bar-text">
+            <PixelIcon name="monitor" color="#fff" /> Braize Command Center
+          </div>
+          <div class="title-bar-controls" aria-hidden="true">
+            <button type="button">&#95;</button>
+            <button type="button">&#9633;</button>
+            <button type="button">&#10005;</button>
+          </div>
+        </div>
+        <div class="dash-hero-body">
+          <div>
+            <p class="eyebrow">PROJECT OPS / HACKATIME SYNC / JOURNAL LOG</p>
+            <h1>Dashboard</h1>
+            <p class="hero-copy">Track builds, link real coding hours, and keep ship notes in one tiny retro control room.</p>
+          </div>
+          <div class="hero-terminal" aria-label="Dashboard status terminal">
+            <span>C:\BRAIZE&gt; scan projects</span>
+            <span>hackatime: ready</span>
+            <span>journal: armed</span>
+            <span class="terminal-cursor">_</span>
+          </div>
+        </div>
+      </section>
+
       <!-- Stats taskbar -->
       <div class="stats-bar window">
         <div class="stat">
@@ -47,9 +73,15 @@ import PixelIcon from '../components/PixelIcon.astro';
       </div>
 
       <Panel id="projects" title="My Projects" icon="folder" color="var(--hc-blue)" color2="var(--hc-cyan)">
-        <button type="button" class="btn btn-accent add-project-toggle" id="add-project-toggle">
-          <span id="add-project-toggle-label">+ New Project</span>
-        </button>
+        <div class="project-toolbar">
+          <div>
+            <h2>Build Queue</h2>
+            <p>Each folder is one browser project. Link Hackatime once, then hours stay live.</p>
+          </div>
+          <button type="button" class="btn btn-accent add-project-toggle" id="add-project-toggle">
+            <span id="add-project-toggle-label">+ New Project</span>
+          </button>
+        </div>
 
         <form id="new-project-form" class="project-form" hidden>
           <input type="text" name="name" placeholder="Project name" required maxlength="80" />
@@ -505,6 +537,71 @@ import PixelIcon from '../components/PixelIcon.astro';
   .dash-header {
     margin: 24px 0 14px;
   }
+
+  .dash-hero {
+    margin-bottom: 18px;
+    overflow: hidden;
+  }
+
+  .dash-hero-body {
+    display: grid;
+    grid-template-columns: 1.5fr minmax(220px, 0.8fr);
+    gap: 18px;
+    padding: 18px;
+    background:
+      linear-gradient(135deg, rgba(166, 51, 214, 0.2), rgba(91, 192, 222, 0.08)),
+      radial-gradient(circle at 12px 12px, rgba(255, 255, 255, 0.18) 0 2px, transparent 2px 24px),
+      var(--win-face);
+  }
+
+  .eyebrow {
+    margin: 0 0 6px;
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: bold;
+    letter-spacing: 1.4px;
+    color: var(--hc-purple);
+  }
+
+  .dash-hero h1 {
+    margin: 0;
+    font-size: clamp(3rem, 9vw, 5.6rem);
+    color: #fff;
+    text-shadow:
+      3px 3px 0 var(--hc-purple),
+      6px 6px 0 rgba(0, 0, 0, 0.35),
+      0 0 18px rgba(91, 192, 222, 0.65);
+  }
+
+  .hero-copy {
+    max-width: 560px;
+    margin: 8px 0 0;
+    color: rgba(0, 0, 0, 0.78);
+    font-weight: bold;
+  }
+
+  .hero-terminal {
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    padding: 14px;
+    min-height: 130px;
+    background: #050505;
+    color: var(--hc-green);
+    font-family: 'Lucida Console', monospace;
+    font-size: 0.82rem;
+    box-shadow:
+      inset 1px 1px #000,
+      inset -1px -1px var(--win-light-highlight),
+      5px 5px 0 rgba(0, 0, 0, 0.28);
+  }
+
+  .terminal-cursor {
+    animation: blink 1s steps(1) infinite;
+  }
+
   .breadcrumbs {
     font-family: var(--font-body);
     font-size: 0.85rem;
@@ -529,34 +626,49 @@ import PixelIcon from '../components/PixelIcon.astro';
   .stats-bar {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 0;
-    padding: 0;
+    gap: 8px;
+    padding: 8px;
     margin-bottom: 20px;
+    background:
+      linear-gradient(90deg, rgba(0, 0, 0, 0.08), transparent 40%, rgba(255, 255, 255, 0.22)),
+      var(--win-face);
   }
   .stat {
-    padding: 14px 12px;
+    position: relative;
+    padding: 16px 12px 14px;
     text-align: center;
-    background: var(--win-face);
-    border-right: 1px solid var(--win-shadow);
+    background:
+      linear-gradient(180deg, #fff 0 18%, var(--win-face) 18% 100%);
+    box-shadow:
+      inset -1px -1px var(--win-shadow),
+      inset 1px 1px var(--win-light-highlight),
+      3px 3px 0 rgba(0, 0, 0, 0.16);
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 4px;
   }
-  .stat:last-child {
-    border-right: none;
+
+  .stat::before {
+    content: '';
+    position: absolute;
+    inset: 4px 4px auto;
+    height: 3px;
+    background: linear-gradient(90deg, var(--hc-red), var(--hc-orange), var(--hc-yellow), var(--hc-green), var(--hc-cyan), var(--hc-purple));
   }
+
   .stat :global(svg.pixel-icon) {
-    width: 22px;
-    height: 22px;
+    width: 28px;
+    height: 28px;
     image-rendering: pixelated;
   }
   .stat-num {
     font-family: var(--font-display);
-    font-size: 1.8rem;
+    font-size: 2.35rem;
     line-height: 1;
-    color: var(--win-text);
+    color: #101010;
     margin-top: 2px;
+    text-shadow: 2px 2px 0 rgba(91, 192, 222, 0.25);
   }
   .stat-label {
     font-family: var(--font-body);
@@ -568,7 +680,33 @@ import PixelIcon from '../components/PixelIcon.astro';
 
   /* Add project toggle */
   .add-project-toggle {
+    flex-shrink: 0;
+  }
+
+  .project-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
     margin-bottom: 14px;
+    padding: 12px;
+    background:
+      linear-gradient(90deg, rgba(241, 196, 15, 0.45), rgba(91, 192, 222, 0.22)),
+      var(--win-face);
+    box-shadow:
+      inset -1px -1px var(--win-shadow),
+      inset 1px 1px var(--win-light-highlight);
+  }
+
+  .project-toolbar h2 {
+    margin: 0 0 2px;
+  }
+
+  .project-toolbar p {
+    margin: 0;
+    max-width: 520px;
+    color: rgba(0, 0, 0, 0.68);
+    font-size: 0.88rem;
   }
   .project-form[hidden] {
     display: none;
@@ -578,8 +716,10 @@ import PixelIcon from '../components/PixelIcon.astro';
     flex-direction: column;
     gap: 6px;
     margin-bottom: 18px;
-    padding: 12px;
-    background: #fff;
+    padding: 14px;
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(91, 192, 222, 0.12)),
+      #fff;
     box-shadow:
       inset -1px -1px var(--win-shadow),
       inset 1px 1px var(--win-dark-shadow);
@@ -588,7 +728,7 @@ import PixelIcon from '../components/PixelIcon.astro';
   .project-form textarea,
   .journal-form input,
   .journal-form textarea,
-  .hackatime-input {
+  .hackatime-select {
     font-family: var(--font-body);
     font-size: 0.9rem;
     padding: 6px 8px;
@@ -605,8 +745,8 @@ import PixelIcon from '../components/PixelIcon.astro';
 
   /* Project list */
   .project-list {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 16px;
   }
   .project-list .loading {
@@ -626,6 +766,7 @@ import PixelIcon from '../components/PixelIcon.astro';
 
   /* Empty state */
   .empty-state {
+    grid-column: 1 / -1;
     text-align: center;
     padding: 40px 20px;
     background: #fff;
@@ -646,26 +787,45 @@ import PixelIcon from '../components/PixelIcon.astro';
 
   /* Project card — folder tab style */
   .project-card {
+    position: relative;
     background: #fff;
     box-shadow:
       inset -1px -1px var(--win-shadow),
-      inset 1px 1px var(--win-dark-shadow);
+      inset 1px 1px var(--win-dark-shadow),
+      7px 7px 0 rgba(0, 0, 0, 0.2);
     overflow: hidden;
+    min-height: 100%;
     transition: transform 0.1s ease, box-shadow 0.1s ease;
   }
+
+  .project-card::after {
+    content: '';
+    position: absolute;
+    right: 10px;
+    top: 38px;
+    width: 54px;
+    height: 42px;
+    opacity: 0.08;
+    background:
+      linear-gradient(var(--hc-blue), var(--hc-blue)) 0 8px / 54px 34px no-repeat,
+      linear-gradient(var(--hc-blue), var(--hc-blue)) 0 0 / 24px 12px no-repeat;
+    pointer-events: none;
+  }
+
   .project-card:hover {
     transform: translate(-2px, -2px);
     box-shadow:
       inset -1px -1px var(--win-shadow),
       inset 1px 1px var(--win-dark-shadow),
-      3px 3px 0 rgba(0, 0, 0, 0.25),
+      9px 9px 0 rgba(0, 0, 0, 0.25),
       0 0 14px rgba(91, 192, 222, 0.2);
   }
   .project-tab {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 5px 10px;
+    min-height: 36px;
+    padding: 7px 10px;
     color: #fff;
     font-family: var(--font-body);
     box-shadow:
@@ -685,7 +845,9 @@ import PixelIcon from '../components/PixelIcon.astro';
     padding: 2px 6px;
   }
   .project-body {
-    padding: 12px 14px;
+    position: relative;
+    z-index: 1;
+    padding: 14px;
   }
   .project-desc {
     margin: 0 0 8px;
@@ -698,7 +860,9 @@ import PixelIcon from '../components/PixelIcon.astro';
 
   /* Project stats row */
   .project-stats {
-    background: var(--win-face);
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.32) 0 1px, transparent 1px 8px),
+      var(--win-face);
     padding: 10px;
     margin: 10px 0;
     box-shadow:
@@ -722,6 +886,18 @@ import PixelIcon from '../components/PixelIcon.astro';
     min-width: 120px;
     font-size: 0.85rem;
   }
+
+  .hackatime-select {
+    flex: 1;
+    min-width: 120px;
+    font-size: 0.85rem;
+    appearance: none;
+    background:
+      linear-gradient(45deg, transparent 50%, var(--win-text) 50%) calc(100% - 13px) 50% / 6px 6px no-repeat,
+      linear-gradient(-45deg, transparent 50%, var(--win-text) 50%) calc(100% - 9px) 50% / 6px 6px no-repeat,
+      var(--win-face);
+    padding-right: 28px;
+  }
   .hours-display {
     display: flex;
     align-items: center;
@@ -729,7 +905,7 @@ import PixelIcon from '../components/PixelIcon.astro';
   }
   .hours-bar {
     flex: 1;
-    height: 10px;
+    height: 12px;
     background: #000;
     box-shadow:
       inset 1px 1px var(--win-dark-shadow),
@@ -790,7 +966,7 @@ import PixelIcon from '../components/PixelIcon.astro';
   /* Journal section */
   .journal-section {
     margin-top: 14px;
-    border-top: 1px dashed var(--win-shadow);
+    border-top: 2px dotted var(--win-shadow);
     padding-top: 12px;
   }
   .journal-header {
@@ -801,7 +977,8 @@ import PixelIcon from '../components/PixelIcon.astro';
   }
   .journal-header h4 {
     margin: 0;
-    font-size: 0.95rem;
+    font-size: 1rem;
+    color: var(--hc-purple);
   }
   .journal-form {
     display: flex;
@@ -822,7 +999,8 @@ import PixelIcon from '../components/PixelIcon.astro';
     font-size: 0.85rem;
   }
   .journal-entry {
-    background: var(--win-face);
+    background:
+      linear-gradient(90deg, #fff 0 4px, var(--win-face) 4px 100%);
     padding: 8px 10px;
     margin-bottom: 8px;
     box-shadow:
@@ -872,6 +1050,34 @@ import PixelIcon from '../components/PixelIcon.astro';
     border-top: 1px dashed var(--win-shadow);
     display: flex;
     justify-content: flex-end;
+  }
+
+  @media (max-width: 720px) {
+    .dash-hero-body {
+      grid-template-columns: 1fr;
+      padding: 14px;
+    }
+
+    .project-toolbar {
+      flex-direction: column;
+    }
+
+    .project-list {
+      grid-template-columns: 1fr;
+    }
+
+    .stat-row,
+    .hours-display {
+      align-items: stretch;
+    }
+
+    .hours-display {
+      flex-direction: column;
+    }
+
+    .hours-text {
+      text-align: left;
+    }
   }
 
   /* Confirm dialog */
