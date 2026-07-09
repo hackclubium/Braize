@@ -162,6 +162,7 @@ import PixelIcon from '../components/PixelIcon.astro';
   let htCache = null;
   let htCacheTs = 0;
   let htInflight = null;
+  let htLastError = '';
 
   async function fetchHackatimeProjects(force = false) {
     const now = Date.now();
@@ -182,10 +183,11 @@ import PixelIcon from '../components/PixelIcon.astro';
         const { projects } = await api('/hackatime/projects');
         htCache = projects ?? [];
         htCacheTs = now;
+        htLastError = '';
         sessionStorage.setItem(HT_CACHE_KEY, JSON.stringify({ projects: htCache, ts: htCacheTs }));
         return htCache;
       } catch (err) {
-        // hackatime not connected or API error — return empty so select shows just the unlink option
+        htLastError = err.message;
         htCache = [];
         htCacheTs = now;
         return htCache;
@@ -204,6 +206,9 @@ import PixelIcon from '../components/PixelIcon.astro';
     const knownNames = new Set(projects.map((p) => p.name));
     const opts = [];
     opts.push(`<option value="">— not linked —</option>`);
+    if (htLastError) {
+      opts.push(`<option value="" disabled>Hackatime unavailable (${escapeHtml(htLastError)})</option>`);
+    }
     if (current && !knownNames.has(current)) {
       opts.push(`<option value="${escapeHtml(current)}">${escapeHtml(current)} (missing)</option>`);
     }
@@ -214,7 +219,9 @@ import PixelIcon from '../components/PixelIcon.astro';
     select.innerHTML = opts.join('');
     select.value = current;
     select.disabled = projects.length === 0 && !current;
-    if (projects.length === 0) {
+    if (htLastError) {
+      select.title = 'Hackatime project list failed to load. Try refresh.';
+    } else if (projects.length === 0) {
       select.title = 'Connect Hackatime and start a timer to populate this list';
     } else {
       select.title = '';

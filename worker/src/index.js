@@ -2,8 +2,8 @@ const HACKCLUB_TOKEN_URL = 'https://auth.hackclub.com/oauth/token';
 const HACKCLUB_ME_URL = 'https://auth.hackclub.com/api/v1/me';
 const HACKATIME_TOKEN_URL = 'https://hackatime.hackclub.com/oauth/token';
 const HACKATIME_ME_URL = 'https://hackatime.hackclub.com/api/v1/authenticated/me';
-const HACKATIME_STATS_URL = 'https://hackatime.hackclub.com/api/v1/users/my/stats';
-const HACKATIME_PROJECTS_URL = 'https://hackatime.hackclub.com/api/v1/users/my/projects';
+const HACKATIME_STATS_URL = 'https://hackatime.hackclub.com/api/v1/users/me/stats';
+const HACKATIME_PROJECTS_URL = 'https://hackatime.hackclub.com/api/v1/users/me/projects';
 
 function corsHeaders(env) {
   return {
@@ -288,7 +288,7 @@ async function handleHackatimeStats(user, env, projectId) {
   if (!statsRes.ok) return json({ error: 'hackatime stats fetch failed' }, 502, env);
 
   const stats = await statsRes.json();
-  const totalSeconds = stats.data?.total_seconds ?? 0;
+  const totalSeconds = stats.total_seconds ?? stats.data?.total_seconds ?? 0;
   return json({ totalSeconds }, 200, env);
 }
 
@@ -302,15 +302,16 @@ async function handleListHackatimeProjects(user, env) {
   if (!res.ok) return json({ error: 'hackatime project list fetch failed' }, 502, env);
 
   const body = await res.json();
-  const raw = Array.isArray(body) ? body : body.data ?? body.projects ?? [];
+  const raw = Array.isArray(body) ? body : body.projects ?? body.data ?? [];
 
   const projects = raw
-    .filter((p) => p && p.name)
+    .filter(Boolean)
     .map((p) => ({
-      name: p.name,
-      totalSeconds: p.total_seconds ?? 0,
-      lastHeartbeatAt: p.last_heartbeat_at ?? p.updated_at ?? null,
+      name: typeof p === 'string' ? p : p.name,
+      totalSeconds: typeof p === 'string' ? 0 : p.total_seconds ?? 0,
+      lastHeartbeatAt: typeof p === 'string' ? null : p.last_heartbeat_at ?? p.updated_at ?? null,
     }))
+    .filter((p) => p.name)
     .sort((a, b) => b.totalSeconds - a.totalSeconds);
 
   return json({ projects }, 200, env);
