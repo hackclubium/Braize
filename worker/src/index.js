@@ -2,7 +2,7 @@ const HACKCLUB_TOKEN_URL = 'https://auth.hackclub.com/oauth/token';
 const HACKCLUB_ME_URL = 'https://auth.hackclub.com/api/v1/me';
 const HACKATIME_TOKEN_URL = 'https://hackatime.hackclub.com/oauth/token';
 const HACKATIME_ME_URL = 'https://hackatime.hackclub.com/api/v1/authenticated/me';
-const HACKATIME_USER_URL = 'https://hackatime.hackclub.com/api/v1/users';
+const HACKATIME_PROJECTS_URL = 'https://hackatime.hackclub.com/api/v1/authenticated/projects';
 
 function corsHeaders(env) {
   return {
@@ -146,16 +146,6 @@ async function handleHackatimeOauthToken(request, env) {
   return json({ githubUsername, trustLevel }, 200, env);
 }
 
-function getHackatimeUsername(user) {
-  if (!user.hackatime_data) return null;
-  try {
-    const data = JSON.parse(user.hackatime_data);
-    return data.username ?? data.github_username ?? null;
-  } catch {
-    return null;
-  }
-}
-
 async function getOwnedProject(env, user, projectId) {
   const project = await env.DB.prepare(`SELECT * FROM projects WHERE id = ?1`).bind(projectId).first();
   if (!project || project.user_id !== user.id) return null;
@@ -285,30 +275,27 @@ async function handleHackatimeStats(user, env, projectId) {
   if (!project) return json({ error: 'not found' }, 404, env);
   if (!project.hackatime_project_name) return json({ error: 'no hackatime project linked' }, 400, env);
   if (!user.hackatime_access_token) return json({ error: 'hackatime not connected' }, 400, env);
-  const username = getHackatimeUsername(user);
-  if (!username) return json({ error: 'hackatime username missing; reconnect hackatime' }, 400, env);
 
   const params = new URLSearchParams({
-    filter_by_project: project.hackatime_project_name,
-    total_seconds: 'true',
+    projects: project.hackatime_project_name,
   });
-  const statsRes = await fetch(`${HACKATIME_USER_URL}/${encodeURIComponent(username)}/stats?${params.toString()}`, {
+  const statsRes = await fetch(`${HACKATIME_PROJECTS_URL}?${params.toString()}`, {
     headers: { Authorization: `Bearer ${user.hackatime_access_token}` },
   });
 
   if (!statsRes.ok) return json({ error: 'hackatime stats fetch failed' }, 502, env);
 
   const stats = await statsRes.json();
-  const totalSeconds = stats.total_seconds ?? stats.data?.total_seconds ?? 0;
+  const projects = stats.projects ?? stats.data?.projects ?? [];
+  const match = projects.find((p) => p.name === project.hackatime_project_name);
+  const totalSeconds = match?.total_seconds ?? stats.total_seconds ?? stats.data?.total_seconds ?? 0;
   return json({ totalSeconds }, 200, env);
 }
 
 async function handleListHackatimeProjects(user, env) {
   if (!user.hackatime_access_token) return json({ error: 'hackatime not connected' }, 400, env);
-  const username = getHackatimeUsername(user);
-  if (!username) return json({ error: 'hackatime username missing; reconnect hackatime' }, 400, env);
 
-  const res = await fetch(`${HACKATIME_USER_URL}/${encodeURIComponent(username)}/projects`, {
+  const res = await fetch(HACKATIME_PROJECTS_URL, {
     headers: { Authorization: `Bearer ${user.hackatime_access_token}` },
   });
 
