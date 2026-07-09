@@ -616,7 +616,7 @@ import PixelIcon from '../components/PixelIcon.astro';
   });
 </script>
 
-<style>
+<style is:global>
   /* Dashboard header */
   .dash-header {
     margin: 24px 0 14px;
@@ -741,7 +741,7 @@ import PixelIcon from '../components/PixelIcon.astro';
     background: linear-gradient(90deg, var(--hc-red), var(--hc-orange), var(--hc-yellow), var(--hc-green), var(--hc-cyan), var(--hc-purple));
   }
 
-  .stat :global(svg.pixel-icon) {
+  .stat svg.pixel-icon {
     width: 28px;
     height: 28px;
     image-rendering: pixelated;
@@ -1441,21 +1441,21 @@ import PixelIcon from '../components/PixelIcon.astro';
     font-size: 0.9rem;
     line-height: 1.5;
   }
-  .journal-body :global(p) {
+  .journal-body p {
     margin: 0.45em 0;
   }
-  .journal-body :global(code) {
+  .journal-body code {
     background: rgba(0, 0, 0, 0.1);
     padding: 1px 4px;
     font-size: 0.85em;
   }
 
-  .journal-body :global(a) {
+  .journal-body a {
     color: var(--hc-blue);
     font-weight: bold;
   }
 
-  .journal-body :global(img) {
+  .journal-body img {
     display: block;
     max-width: 100%;
     max-height: 360px;
@@ -1572,7 +1572,7 @@ import PixelIcon from '../components/PixelIcon.astro';
     gap: 12px;
     padding: 16px;
   }
-  .confirm-body :global(svg.pixel-icon) {
+  .confirm-body svg.pixel-icon {
     width: 32px;
     height: 32px;
     flex-shrink: 0;
