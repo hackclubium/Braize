@@ -375,6 +375,7 @@ import PixelIcon from '../components/PixelIcon.astro';
           body: JSON.stringify({ hackatime_project_name: value }),
         });
         project.hackatime_project_name = value;
+        select.dataset.current = value || '';
         // auto-refresh hours on link
         if (value) {
           const hoursEl = document.getElementById(`hours-text-${project.id}`);
