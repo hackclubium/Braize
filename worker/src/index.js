@@ -398,6 +398,11 @@ export default {
     if (match) {
       if (!user) return json({ error: 'unauthorized' }, 401, env);
       const projectId = match[1];
+      if (request.method === 'GET') {
+        const project = await getOwnedProject(env, user, projectId);
+        if (!project) return json({ error: 'not found' }, 404, env);
+        return json({ project }, 200, env);
+      }
       if (request.method === 'PATCH') return handleUpdateProject(request, user, env, projectId);
       if (request.method === 'DELETE') return handleDeleteProject(user, env, projectId);
     }

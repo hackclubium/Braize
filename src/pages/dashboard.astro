@@ -370,10 +370,7 @@ import PixelIcon from '../components/PixelIcon.astro';
         <div class="project-stats">
           <div class="stat-row">
             <span class="stat-label-inline">Hackatime:</span>
-            <select class="hackatime-select" data-project-id="${project.id}" data-current="${escapeHtml(project.hackatime_project_name ?? '')}">
-              <option value="">— not linked —</option>
-            </select>
-            <button type="button" class="btn-mini refresh-hackatime icon-action" title="Refresh project list from Hackatime">Refresh</button>
+            <span class="project-status">${escapeHtml(project.hackatime_project_name || 'not linked')}</span>
           </div>
           <div class="hours-display">
             <div class="hours-bar"><div class="hours-fill" id="hours-fill-${project.id}"></div></div>
@@ -387,158 +384,19 @@ import PixelIcon from '../components/PixelIcon.astro';
               <h4>Preview</h4>
               <span class="journal-kicker">latest devlog proof</span>
             </div>
-            <button type="button" class="btn-mini toggle-journal action-soft" data-target="journal-form-${project.id}">+ Add Entry</button>
           </div>
-          <form class="journal-form" id="journal-form-${project.id}" hidden>
-            <input type="text" name="title" placeholder="Entry title (optional)" maxlength="100" />
-            <textarea name="body" placeholder="What did you work on? Drop notes, links, screenshots. Markdown supported." rows="5" required></textarea>
-            <div class="journal-tools">
-              <label class="btn-mini image-upload-btn">
-                <span>+ Image</span>
-                <input type="file" name="image" accept="image/png,image/jpeg,image/gif,image/webp" />
-              </label>
-              <span class="journal-help">PNG/JPG/GIF/WebP, max 5 MB. Uploads, then inserts markdown.</span>
-            </div>
-            <div class="form-actions">
-              <button type="submit" class="btn-mini btn-accent-mini action-post">Post Entry</button>
-              <button type="button" class="btn-mini cancel-journal action-muted">Cancel</button>
-            </div>
-          </form>
           <div class="journal-entries journal-preview" id="journal-${project.id}">
             <div class="loading">Loading journal...</div>
           </div>
         </div>
 
         <div class="project-footer action-dock">
-          <span class="dock-label">Project Controls</span>
+          <span class="dock-label">Project Views</span>
+          <a class="btn-mini btn-accent-mini" href="/Braize/project/manage/?id=${project.id}">Manage</a>
           <a class="btn-mini action-soft" href="${PUBLIC_PROJECT_BASE}?id=${project.id}" target="_blank" rel="noopener">Open Full Project</a>
-          <button type="button" class="btn-mini danger delete-project action-danger">Delete Project</button>
         </div>
       </div>
     `;
-
-    // Hackatime select — auto-save on change
-    const select = el.querySelector('.hackatime-select');
-    select.addEventListener('change', async () => {
-      const value = select.value || null;
-      try {
-        await api(`/projects/${project.id}`, {
-          method: 'PATCH',
-          body: JSON.stringify({ hackatime_project_name: value }),
-        });
-        project.hackatime_project_name = value;
-        select.dataset.current = value || '';
-        // auto-refresh hours on link
-        if (value) {
-          const hoursEl = document.getElementById(`hours-text-${project.id}`);
-          const fillEl = document.getElementById(`hours-fill-${project.id}`);
-          hoursEl.textContent = 'Checking...';
-          try {
-            const { totalSeconds } = await api(`/projects/${project.id}/hackatime-stats`);
-            project.total_seconds = totalSeconds;
-            const hrs = totalSeconds / 3600;
-            hoursEl.textContent = `${hrs.toFixed(1)} hrs`;
-            const pct = Math.min(100, (hrs / 20) * 100);
-            fillEl.style.width = pct + '%';
-            api('/projects').then(({ projects }) => updateStats(projects));
-          } catch {
-            hoursEl.textContent = 'no hours yet';
-            fillEl.style.width = '0%';
-          }
-        }
-      } catch (err) {
-        alert(`Failed to save: ${err.message}`);
-        // revert
-        select.value = project.hackatime_project_name ?? '';
-      }
-    });
-
-    // Refresh hackatime list
-    el.querySelector('.refresh-hackatime').addEventListener('click', async () => {
-      await populateHackatimeSelect(select, { force: true });
-    });
-    populateHackatimeSelect(select);
-
-    // Delete
-    el.querySelector('.delete-project').addEventListener('click', async () => {
-      const ok = await win95Confirm(`Delete "${project.name}"? This also deletes its journal entries.`);
-      if (!ok) return;
-      try {
-        await api(`/projects/${project.id}`, { method: 'DELETE' });
-        el.remove();
-        const { projects } = await api('/projects');
-        renderProjectList(projects);
-        updateStats(projects);
-      } catch (err) {
-        alert(`Failed to delete: ${err.message}`);
-      }
-    });
-
-    // Journal toggle
-    const journalForm = el.querySelector(`#journal-form-${project.id}`);
-    const toggleJournalBtn = el.querySelector('.toggle-journal');
-    toggleJournalBtn.addEventListener('click', () => {
-      const hidden = journalForm.hidden;
-      journalForm.hidden = !hidden;
-      toggleJournalBtn.textContent = hidden ? '× Cancel' : '+ Add Entry';
-    });
-    el.querySelector('.cancel-journal').addEventListener('click', () => {
-      journalForm.hidden = true;
-      toggleJournalBtn.textContent = '+ Add Entry';
-      journalForm.reset();
-    });
-
-    journalForm.image.addEventListener('change', async () => {
-      const file = journalForm.image.files?.[0];
-      if (!file) return;
-      if (!file.type.startsWith('image/')) {
-        alert('Pick an image file.');
-        journalForm.image.value = '';
-        return;
-      }
-      if (file.size > MAX_JOURNAL_IMAGE_BYTES) {
-        alert('Image too large. Keep it under 5 MB.');
-        journalForm.image.value = '';
-        return;
-      }
-
-      const label = journalForm.querySelector('.image-upload-btn');
-      const labelText = label.querySelector('span');
-      labelText.textContent = 'Uploading...';
-      try {
-        const { url } = await uploadJournalImage(file);
-        const alt = file.name.replace(/\.[^.]+$/, '').replace(/[\[\]()]/g, '').trim() || 'journal image';
-        insertAtCursor(journalForm.body, `\n\n![${alt}](${url})\n`);
-      } catch (err) {
-        alert(`Failed to add image: ${err.message}`);
-      } finally {
-        labelText.textContent = '+ Image';
-        journalForm.image.value = '';
-      }
-    });
-
-    // Journal submit
-    journalForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const form = e.target;
-      const title = form.title.value.trim() || null;
-      const body = form.body.value.trim();
-      if (!body) return;
-      try {
-        await api(`/projects/${project.id}/journal`, {
-          method: 'POST',
-          body: JSON.stringify({ title, body }),
-        });
-        form.reset();
-        journalForm.hidden = true;
-        toggleJournalBtn.textContent = '+ Add Entry';
-        await loadJournal(project.id, el.querySelector(`#journal-${project.id}`));
-        const { projects } = await api('/projects');
-        updateStats(projects);
-      } catch (err) {
-        alert(`Failed to post: ${err.message}`);
-      }
-    });
 
     // Initial bar fill
     if (hours > 0) {

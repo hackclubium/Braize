@@ -1,0 +1,317 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<Layout title="Manage Project - Braize" description="Manage a Braize project.">
+  <main class="page manage-project-page">
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href={base || '/'}>Braize</a>
+      <span class="sep">›</span>
+      <a href={`${base}/dashboard/`}>Dashboard</a>
+      <span class="sep">›</span>
+      <span>Manage Project</span>
+    </nav>
+
+    <section class="window manage-shell">
+      <div class="title-bar" style="--title-color: var(--hc-blue); --title-color-2: var(--hc-purple);">
+        <div class="title-bar-text">Project Workshop</div>
+      </div>
+      <div class="manage-body" id="manage-root">
+        <div class="loading">Loading project...</div>
+      </div>
+    </section>
+  </main>
+</Layout>
+
+<script type="module">
+  const { marked } = await import('https://esm.sh/marked@18');
+
+  const WORKER_URL = 'https://braize-worker.braize.workers.dev';
+  const PUBLIC_PROJECT_BASE = '/Braize/project/';
+  const MAX_JOURNAL_IMAGE_BYTES = 5 * 1024 * 1024;
+  const account = JSON.parse(localStorage.getItem('braize_hc_account') || 'null');
+  const sessionToken = account?.sessionToken;
+  const root = document.getElementById('manage-root');
+  const projectId = new URLSearchParams(window.location.search).get('id');
+
+  function authHeaders(extra = {}) {
+    return { Authorization: `Bearer ${sessionToken}`, ...extra };
+  }
+
+  async function api(path, options = {}) {
+    const res = await fetch(`${WORKER_URL}${path}`, {
+      ...options,
+      headers: authHeaders({ 'Content-Type': 'application/json', ...(options.headers || {}) }),
+    });
+    if (!res.ok) throw new Error(`request failed: ${res.status}`);
+    return res.json();
+  }
+
+  function escapeHtml(str) {
+    if (str == null) return '';
+    const div = document.createElement('div');
+    div.textContent = String(str);
+    return div.innerHTML;
+  }
+
+  function insertAtCursor(textarea, text) {
+    const start = textarea.selectionStart ?? textarea.value.length;
+    const end = textarea.selectionEnd ?? textarea.value.length;
+    textarea.value = textarea.value.slice(0, start) + text + textarea.value.slice(end);
+    const cursor = start + text.length;
+    textarea.focus();
+    textarea.setSelectionRange(cursor, cursor);
+  }
+
+  async function uploadJournalImage(file) {
+    const form = new FormData();
+    form.append('image', file);
+    const res = await fetch(`${WORKER_URL}/uploads`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: form,
+    });
+    if (!res.ok) throw new Error(`upload failed: ${res.status}`);
+    return res.json();
+  }
+
+  function renderDate(value) {
+    const date = new Date(value + 'Z');
+    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  async function loadJournal() {
+    const container = document.getElementById('manage-journal');
+    const { entries } = await api(`/projects/${projectId}/journal`);
+    container.innerHTML = entries.length ? entries.map((entry) => `
+      <article class="manage-entry">
+        <div class="manage-entry-head">
+          <strong>${entry.title ? escapeHtml(entry.title) : 'Untitled update'}</strong>
+          <span>${renderDate(entry.created_at)}</span>
+        </div>
+        <div class="journal-body">${marked.parse(entry.body)}</div>
+      </article>
+    `).join('') : '<div class="journal-empty">No journal entries yet.</div>';
+  }
+
+  async function loadProject() {
+    if (!sessionToken) {
+      root.innerHTML = '<div class="error">Sign in first.</div>';
+      return;
+    }
+    if (!projectId) {
+      root.innerHTML = '<div class="error">Missing project id.</div>';
+      return;
+    }
+
+    try {
+      const { project } = await api(`/projects/${projectId}`);
+      root.innerHTML = `
+        <header class="manage-hero">
+          <div>
+            <p class="eyebrow">PRIVATE WORKSHOP</p>
+            <h1>${escapeHtml(project.name)}</h1>
+            <p>Customize project details, Hackatime link, and journal proof here.</p>
+          </div>
+          <div class="manage-actions">
+            <a class="btn" href="${PUBLIC_PROJECT_BASE}?id=${project.id}" target="_blank" rel="noopener">Public View</a>
+            <button type="button" class="btn danger" id="delete-project">Delete</button>
+          </div>
+        </header>
+
+        <form class="manage-form" id="project-form">
+          <label>Name<input name="name" value="${escapeHtml(project.name)}" required maxlength="80"></label>
+          <label>Repo URL<input name="repo_url" value="${escapeHtml(project.repo_url || '')}"></label>
+          <label>Status<input name="status" value="${escapeHtml(project.status || '')}"></label>
+          <label>Hackatime Project<input name="hackatime_project_name" value="${escapeHtml(project.hackatime_project_name || '')}"></label>
+          <label>Description<textarea name="description" rows="4">${escapeHtml(project.description || '')}</textarea></label>
+          <button type="submit" class="btn btn-accent">Save Project</button>
+        </form>
+
+        <section class="manage-journal-box">
+          <h2>Journal</h2>
+          <form class="manage-form" id="journal-form">
+            <input name="title" placeholder="Entry title (optional)" maxlength="100">
+            <textarea name="body" placeholder="What changed? Markdown supported." rows="7" required></textarea>
+            <div class="manage-tools">
+              <label class="btn-mini image-upload-btn">
+                <span>+ Image</span>
+                <input type="file" name="image" accept="image/png,image/jpeg,image/gif,image/webp">
+              </label>
+              <span>PNG/JPG/GIF/WebP, max 5 MB.</span>
+            </div>
+            <button type="submit" class="btn btn-accent">Post Entry</button>
+          </form>
+          <div id="manage-journal" class="manage-journal"><div class="loading">Loading journal...</div></div>
+        </section>
+      `;
+      document.title = `${project.name} - Manage - Braize`;
+
+      document.getElementById('project-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        await api(`/projects/${projectId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            name: form.name.value.trim(),
+            repo_url: form.repo_url.value.trim() || null,
+            status: form.status.value.trim() || null,
+            hackatime_project_name: form.hackatime_project_name.value.trim() || null,
+            description: form.description.value.trim() || null,
+          }),
+        });
+        await loadProject();
+      });
+
+      const journalForm = document.getElementById('journal-form');
+      journalForm.image.addEventListener('change', async () => {
+        const file = journalForm.image.files?.[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) return alert('Pick an image file.');
+        if (file.size > MAX_JOURNAL_IMAGE_BYTES) return alert('Image too large. Keep it under 5 MB.');
+        const labelText = journalForm.querySelector('.image-upload-btn span');
+        labelText.textContent = 'Uploading...';
+        try {
+          const { url } = await uploadJournalImage(file);
+          const alt = file.name.replace(/\.[^.]+$/, '').replace(/[\[\]()]/g, '').trim() || 'journal image';
+          insertAtCursor(journalForm.body, `\n\n![${alt}](${url})\n`);
+        } catch (err) {
+          alert(`Failed to add image: ${err.message}`);
+        } finally {
+          labelText.textContent = '+ Image';
+          journalForm.image.value = '';
+        }
+      });
+
+      journalForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const body = form.body.value.trim();
+        if (!body) return;
+        await api(`/projects/${projectId}/journal`, {
+          method: 'POST',
+          body: JSON.stringify({ title: form.title.value.trim() || null, body }),
+        });
+        form.reset();
+        await loadJournal();
+      });
+
+      document.getElementById('delete-project').addEventListener('click', async () => {
+        if (!confirm('Delete this project and its journal entries?')) return;
+        await api(`/projects/${projectId}`, { method: 'DELETE' });
+        window.location.href = '/Braize/dashboard/';
+      });
+
+      await loadJournal();
+    } catch (err) {
+      root.innerHTML = `<div class="error">Failed to load project. ${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  loadProject();
+</script>
+
+<style is:global>
+  .manage-project-page {
+    padding-top: 24px;
+  }
+
+  .manage-shell {
+    margin-top: 14px;
+  }
+
+  .manage-body {
+    padding: 18px;
+    background: linear-gradient(135deg, rgba(241, 196, 15, 0.2), rgba(91, 192, 222, 0.14)), var(--win-face);
+  }
+
+  .manage-hero {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px;
+    background: #050505;
+    color: #fff;
+    box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.25);
+  }
+
+  .manage-hero h1 {
+    margin: 0;
+    font-size: clamp(2.4rem, 8vw, 4.8rem);
+    color: #fff;
+    text-shadow: 3px 3px 0 var(--hc-blue), 6px 6px 0 rgba(166, 51, 214, 0.5);
+  }
+
+  .manage-actions,
+  .manage-tools {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .manage-form {
+    display: grid;
+    gap: 10px;
+    margin-top: 18px;
+    padding: 14px;
+    background: #fff;
+    box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-dark-shadow);
+  }
+
+  .manage-form label {
+    display: grid;
+    gap: 4px;
+    font-weight: bold;
+  }
+
+  .manage-form input,
+  .manage-form textarea {
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    padding: 8px;
+    background: var(--win-face);
+    border: 0;
+    box-shadow: inset 1px 1px var(--win-dark-shadow), inset -1px -1px var(--win-light-highlight);
+  }
+
+  .manage-journal-box h2 {
+    margin: 24px 0 0;
+  }
+
+  .manage-journal {
+    display: grid;
+    gap: 14px;
+    margin-top: 16px;
+  }
+
+  .manage-entry {
+    padding: 14px;
+    background: #fff;
+    box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-light-highlight), 5px 5px 0 rgba(0, 0, 0, 0.18);
+  }
+
+  .manage-entry-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--win-face);
+  }
+
+  .image-upload-btn input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  @media (max-width: 640px) {
+    .manage-hero,
+    .manage-entry-head {
+      flex-direction: column;
+    }
+  }
+</style>
