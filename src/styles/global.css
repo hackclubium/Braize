@@ -307,13 +307,11 @@ a {
   color: var(--hc-blue);
 }
 
-.breadcrumbs a {
-  color: #fff;
-  text-decoration: underline;
-}
-
-.breadcrumbs a:hover {
+.breadcrumbs a,
+.breadcrumbs a:hover,
+.breadcrumbs a:visited {
   color: var(--hc-yellow);
+  text-decoration: underline;
 }
 
 ::-webkit-scrollbar {
