@@ -1,16 +1,11 @@
 ---
 import Layout from '../layouts/Layout.astro';
-
-const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+import TopNav from '../components/TopNav.astro';
 ---
 
 <Layout title="Explore Projects - Braize" description="Browse public Braize projects.">
   <main class="page explore-page">
-    <nav class="breadcrumbs" aria-label="Breadcrumb">
-      <a href={base || '/'}>Braize</a>
-      <span class="sep">›</span>
-      <span>Explore</span>
-    </nav>
+    <TopNav active="explore" />
 
     <section class="window explore-shell">
       <div class="title-bar" style="--title-color: var(--hc-green); --title-color-2: var(--hc-cyan);">

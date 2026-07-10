@@ -1,0 +1,55 @@
+---
+import Layout from '../layouts/Layout.astro';
+import TopNav from '../components/TopNav.astro';
+import PrizeFaq from '../components/PrizeFaq.astro';
+---
+
+<Layout title="Help - Braize" description="Prize tiers and frequently asked questions for Braize.">
+  <main class="page help-page">
+    <TopNav active="help" />
+
+    <section class="window help-shell">
+      <div class="title-bar" style="--title-color: var(--hc-purple); --title-color-2: var(--hc-red);">
+        <div class="title-bar-text">Help.exe</div>
+      </div>
+      <div class="help-body">
+        <header class="help-hero">
+          <p class="eyebrow">PRIZE TIERS + FAQ</p>
+          <h1>Help</h1>
+          <p>Everything about what you get for shipping, and answers to common questions.</p>
+        </header>
+        <PrizeFaq />
+      </div>
+    </section>
+  </main>
+</Layout>
+
+<style is:global>
+  .help-page {
+    padding-top: 24px;
+  }
+
+  .help-shell {
+    margin-top: 14px;
+  }
+
+  .help-body {
+    padding: 18px;
+    background: linear-gradient(135deg, rgba(166, 51, 214, 0.18), rgba(236, 55, 80, 0.14)), var(--win-face);
+  }
+
+  .help-hero {
+    padding: 18px;
+    background: #050505;
+    color: #fff;
+    box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.25);
+    margin-bottom: 18px;
+  }
+
+  .help-hero h1 {
+    margin: 0;
+    font-size: clamp(2.8rem, 9vw, 5.2rem);
+    color: #fff;
+    text-shadow: 3px 3px 0 var(--hc-purple), 6px 6px 0 rgba(236, 55, 80, 0.45);
+  }
+</style>

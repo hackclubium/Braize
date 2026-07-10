@@ -1,0 +1,116 @@
+---
+import Layout from '../layouts/Layout.astro';
+import TopNav from '../components/TopNav.astro';
+import Panel from '../components/Panel.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<Layout title="Orders - Braize" description="Track reward status for shipped Braize projects.">
+  <main class="page">
+    <TopNav active="orders" />
+
+    <div id="signed-out-notice" class="signed-out" style="display:none;">
+      <Panel id="signed-out" title="Not Connected" icon="plug" color="var(--hc-red)" color2="var(--hc-orange)">
+        <p>You need to connect your Hack Club account before you can view orders.</p>
+        <a class="btn btn-accent" href={`${base}/`}>Go connect your account</a>
+      </Panel>
+    </div>
+
+    <div id="orders-body" style="display:none;">
+      <Panel id="orders" title="Reward Status" icon="gift" color="var(--hc-purple)" color2="var(--hc-red)">
+        <p class="orders-note">
+          This is a status view, not a claim flow — reward fulfillment isn't wired up yet.
+          Once a project ships it shows up here as pending review.
+        </p>
+        <div id="orders-list" class="orders-list">
+          <div class="loading">Loading shipped projects...</div>
+        </div>
+      </Panel>
+    </div>
+  </main>
+</Layout>
+
+<script type="module">
+  const WORKER_URL = 'https://braize-worker.braize.workers.dev';
+
+  const account = JSON.parse(localStorage.getItem('braize_hc_account') || 'null');
+  const sessionToken = account?.sessionToken;
+
+  const signedOutNotice = document.getElementById('signed-out-notice');
+  const ordersBody = document.getElementById('orders-body');
+  const ordersList = document.getElementById('orders-list');
+
+  function escapeHtml(str) {
+    if (str == null) return '';
+    const div = document.createElement('div');
+    div.textContent = String(str);
+    return div.innerHTML;
+  }
+
+  function renderDate(value) {
+    const date = new Date(value + 'Z');
+    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  if (!sessionToken) {
+    signedOutNotice.style.display = 'block';
+  } else {
+    ordersBody.style.display = 'block';
+    loadOrders();
+  }
+
+  async function loadOrders() {
+    try {
+      const res = await fetch(`${WORKER_URL}/projects`, {
+        headers: { Authorization: `Bearer ${sessionToken}` },
+      });
+      if (!res.ok) throw new Error(`request failed: ${res.status}`);
+      const { projects } = await res.json();
+      const shipped = projects.filter((p) => p.shipped_at);
+
+      ordersList.innerHTML = shipped.length
+        ? shipped.map((p) => `
+          <article class="order-card">
+            <strong>${escapeHtml(p.name)}</strong>
+            <span>shipped ${renderDate(p.shipped_at)}</span>
+            <span class="order-pill">reward: pending review</span>
+          </article>
+        `).join('')
+        : '<div class="journal-empty">Ship a project to see it here.</div>';
+    } catch (err) {
+      ordersList.innerHTML = `<div class="error">Failed to load orders. ${escapeHtml(err.message)}</div>`;
+    }
+  }
+</script>
+
+<style is:global>
+  .orders-note {
+    margin: 0 0 14px;
+    font-size: 0.9rem;
+    opacity: 0.85;
+  }
+
+  .orders-list {
+    display: grid;
+    gap: 10px;
+  }
+
+  .order-card {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background: #fff;
+    box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-light-highlight);
+  }
+
+  .order-pill {
+    margin-left: auto;
+    padding: 3px 8px;
+    font-family: var(--font-display);
+    background: #000;
+    color: var(--hc-yellow);
+  }
+</style>

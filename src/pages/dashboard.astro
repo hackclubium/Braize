@@ -2,17 +2,12 @@
 import Layout from '../layouts/Layout.astro';
 import Panel from '../components/Panel.astro';
 import PixelIcon from '../components/PixelIcon.astro';
+import TopNav from '../components/TopNav.astro';
 ---
 
 <Layout title="Dashboard - Braize" description="Manage your Braize projects and journal.">
   <main class="page">
-    <div class="dash-header">
-      <nav class="breadcrumbs" aria-label="Breadcrumb">
-        <a href={import.meta.env.BASE_URL}>Braize</a>
-        <span class="sep">›</span>
-        <span>Dashboard</span>
-      </nav>
-    </div>
+    <TopNav active="dashboard" />
 
     <div id="signed-out-notice" class="signed-out" style="display:none;">
       <Panel id="signed-out" title="Not Connected" icon="plug" color="var(--hc-red)" color2="var(--hc-orange)">

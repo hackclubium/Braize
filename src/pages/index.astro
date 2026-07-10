@@ -4,9 +4,10 @@ import BrowserWindow from '../components/BrowserWindow.astro';
 import Panel from '../components/Panel.astro';
 import WhatCounts from '../components/WhatCounts.astro';
 import Timeline from '../components/Timeline.astro';
-import PrizeFaq from '../components/PrizeFaq.astro';
 import ConnectPanel from '../components/ConnectPanel.astro';
 import Footer from '../components/Footer.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
 <Layout
@@ -49,7 +50,9 @@ import Footer from '../components/Footer.astro';
     </Panel>
 
     <Panel id="prize" title="Prize + FAQ" icon="gift" color="var(--hc-purple)" color2="var(--hc-red)">
-      <PrizeFaq />
+      <p>Ship a project and earn real prizes — stickers, gear, hosting credit, or a monitor depending on how far you push it.</p>
+      <p>Full tier breakdown and answers to common questions live on the Help page.</p>
+      <a class="btn btn-accent" href={`${base}/help/`}>Full Prize + FAQ</a>
     </Panel>
 
     <Footer />

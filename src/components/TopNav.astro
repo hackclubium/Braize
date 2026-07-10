@@ -1,0 +1,78 @@
+---
+interface Props {
+  active: 'dashboard' | 'explore' | 'shop' | 'orders' | 'help';
+  crumb?: string;
+}
+
+const { active, crumb } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const tabs = [
+  { key: 'dashboard', label: 'Dashboard', href: `${base}/dashboard/` },
+  { key: 'explore', label: 'Explore', href: `${base}/explore/` },
+  { key: 'shop', label: 'Shop', href: `${base}/shop/` },
+  { key: 'orders', label: 'Orders', href: `${base}/orders/` },
+  { key: 'help', label: 'Help', href: `${base}/help/` },
+];
+---
+
+<nav class="top-nav" aria-label="App navigation">
+  <a class="top-nav-home" href={`${base}/`}>Braize</a>
+  {tabs.map((tab) => (
+    <a
+      href={tab.href}
+      class={`top-nav-tab${tab.key === active ? ' active' : ''}`}
+      aria-current={tab.key === active ? 'page' : undefined}
+    >
+      {tab.label}
+    </a>
+  ))}
+  {crumb && <span class="top-nav-crumb">› {crumb}</span>}
+</nav>
+
+<style is:global>
+  .top-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 10px;
+    margin-top: 14px;
+    background: var(--win-face);
+    box-shadow: inset -1px -1px var(--win-dark-shadow), inset 1px 1px var(--win-light-highlight);
+  }
+
+  .top-nav-home {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    color: var(--hc-yellow);
+    text-decoration: underline;
+    margin-right: 8px;
+  }
+
+  .top-nav-tab {
+    padding: 5px 10px;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    color: var(--hc-yellow);
+    text-decoration: none;
+    background: var(--win-face);
+    box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-light-highlight);
+  }
+
+  .top-nav-tab:hover {
+    color: #fff;
+  }
+
+  .top-nav-tab.active {
+    color: #111;
+    background: var(--hc-yellow);
+    box-shadow: inset 1px 1px var(--win-dark-shadow), inset -1px -1px var(--win-light-highlight);
+  }
+
+  .top-nav-crumb {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    color: #fff;
+  }
+</style>
