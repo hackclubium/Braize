@@ -12,13 +12,13 @@ const { title, description } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
 const desktopIcons = [
-  { href: '#about', label: 'About', icon: 'folder', color: 'var(--hc-blue)' },
-  { href: '#what-counts', label: 'Counts', icon: 'check', color: 'var(--hc-green)' },
-  { href: '#how-it-works', label: 'How', icon: 'gear', color: 'var(--hc-orange)' },
+  { href: `${base}/#about`, label: 'About', icon: 'folder', color: 'var(--hc-blue)' },
+  { href: `${base}/#what-counts`, label: 'Counts', icon: 'check', color: 'var(--hc-green)' },
+  { href: `${base}/#how-it-works`, label: 'How', icon: 'gear', color: 'var(--hc-orange)' },
   { href: `${base}/explore/`, label: 'Explore', icon: 'folder', color: 'var(--hc-yellow)' },
   { href: `${base}/shop/`, label: 'Shop', icon: 'gift', color: 'var(--hc-purple)' },
-  { href: '#connect', label: 'Connect', icon: 'plug', color: 'var(--hc-cyan)' },
-  { href: '#prize', label: 'Prize', icon: 'gift', color: 'var(--hc-purple)' },
+  { href: `${base}/#connect`, label: 'Connect', icon: 'plug', color: 'var(--hc-cyan)' },
+  { href: `${base}/#prize`, label: 'Prize', icon: 'gift', color: 'var(--hc-purple)' },
 ];
 
 const iconSvgs = {
@@ -46,9 +46,9 @@ const iconSvgs = {
     <!-- floating desktop icons -->
     <nav class="desktop-icons" aria-label="Quick jump">
       {desktopIcons.map((item) => (
-        <a href={item.href} class="desktop-icon" style={`color: ${item.color}`}>
-          <svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true" set:html={iconSvgs[item.icon] ?? ''}></svg>
-          {item.label}
+        <a href={item.href} class="desktop-icon">
+          <svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true" style={`color: ${item.color}`} set:html={iconSvgs[item.icon] ?? ''}></svg>
+          <span class="desktop-icon-label">{item.label}</span>
         </a>
       ))}
     </nav>
