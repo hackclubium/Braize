@@ -124,7 +124,7 @@ import PixelIcon from '../components/PixelIcon.astro';
   const { marked } = await import('https://esm.sh/marked@18');
 
   const WORKER_URL = 'https://braize-worker.braize.workers.dev';
-  const PUBLIC_PROJECT_BASE = `${import.meta.env.BASE_URL}project/`;
+  const PUBLIC_PROJECT_BASE = '/Braize/project/';
 
   const account = JSON.parse(localStorage.getItem('braize_hc_account') || 'null');
   const sessionToken = account?.sessionToken;
