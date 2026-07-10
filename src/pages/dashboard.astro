@@ -384,8 +384,8 @@ import PixelIcon from '../components/PixelIcon.astro';
         <div class="journal-section">
           <div class="journal-header">
             <div>
-              <h4>Journal</h4>
-              <span class="journal-kicker">devlog + proof</span>
+              <h4>Preview</h4>
+              <span class="journal-kicker">latest devlog proof</span>
             </div>
             <button type="button" class="btn-mini toggle-journal action-soft" data-target="journal-form-${project.id}">+ Add Entry</button>
           </div>
@@ -404,14 +404,14 @@ import PixelIcon from '../components/PixelIcon.astro';
               <button type="button" class="btn-mini cancel-journal action-muted">Cancel</button>
             </div>
           </form>
-          <div class="journal-entries" id="journal-${project.id}">
+          <div class="journal-entries journal-preview" id="journal-${project.id}">
             <div class="loading">Loading journal...</div>
           </div>
         </div>
 
         <div class="project-footer action-dock">
           <span class="dock-label">Project Controls</span>
-          <a class="btn-mini action-soft" href="${PUBLIC_PROJECT_BASE}?id=${project.id}" target="_blank" rel="noopener">Public Page</a>
+          <a class="btn-mini action-soft" href="${PUBLIC_PROJECT_BASE}?id=${project.id}" target="_blank" rel="noopener">Open Full Project</a>
           <button type="button" class="btn-mini danger delete-project action-danger">Delete Project</button>
         </div>
       </div>
@@ -562,7 +562,7 @@ import PixelIcon from '../components/PixelIcon.astro';
         container.innerHTML = '<div class="journal-empty">No entries yet. Ship something and tell the world.</div>';
         return;
       }
-      entries.forEach((entry) => {
+      entries.slice(0, 2).forEach((entry) => {
         const entryEl = document.createElement('div');
         entryEl.className = 'journal-entry';
         const date = new Date(entry.created_at + 'Z');
@@ -577,6 +577,15 @@ import PixelIcon from '../components/PixelIcon.astro';
         `;
         container.appendChild(entryEl);
       });
+      if (entries.length > 2) {
+        const more = document.createElement('a');
+        more.className = 'journal-more';
+        more.href = `${PUBLIC_PROJECT_BASE}?id=${projectId}`;
+        more.target = '_blank';
+        more.rel = 'noopener';
+        more.textContent = `View ${entries.length - 2} more on project page`;
+        container.appendChild(more);
+      }
     } catch (err) {
       container.innerHTML = `<div class="error">Failed to load journal. ${escapeHtml(err.message)}</div>`;
     }
@@ -1473,6 +1482,27 @@ import PixelIcon from '../components/PixelIcon.astro';
       inset -1px -1px var(--win-dark-shadow),
       inset 1px 1px var(--win-light-highlight),
       4px 4px 0 rgba(0, 0, 0, 0.22);
+  }
+
+  .journal-preview .journal-body {
+    max-height: 120px;
+    overflow: hidden;
+  }
+
+  .journal-preview .journal-body img {
+    max-height: 120px;
+  }
+
+  .journal-more {
+    display: block;
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: #000;
+    color: var(--hc-cyan);
+    font-weight: bold;
+    text-decoration: none;
+    text-align: center;
+    box-shadow: inset 0 0 0 1px var(--hc-cyan), 4px 4px 0 rgba(0, 0, 0, 0.18);
   }
 
   /* Project footer */
