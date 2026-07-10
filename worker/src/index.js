@@ -167,6 +167,25 @@ async function handleListProjects(user, env) {
   return json({ projects: results }, 200, env);
 }
 
+async function handlePublicProject(env, projectId) {
+  const project = await env.DB.prepare(
+    `SELECT projects.*, users.name AS maker_name
+     FROM projects JOIN users ON users.id = projects.user_id
+     WHERE projects.id = ?1`
+  )
+    .bind(projectId)
+    .first();
+  if (!project) return json({ error: 'not found' }, 404, env);
+
+  const { results: entries } = await env.DB.prepare(
+    `SELECT id, title, body, created_at FROM journal_entries WHERE project_id = ?1 ORDER BY created_at DESC`
+  )
+    .bind(projectId)
+    .all();
+
+  return json({ project, entries }, 200, env);
+}
+
 async function handleCreateProject(request, user, env) {
   const { name, description = null, repo_url = null, category = null } = await request.json();
   if (!name) return json({ error: 'name required' }, 400, env);
@@ -361,6 +380,11 @@ export default {
       return handleHackatimeOauthToken(request, env);
     }
 
+    let match = pathname.match(/^\/public\/projects\/(\d+)$/);
+    if (match && request.method === 'GET') {
+      return handlePublicProject(env, match[1]);
+    }
+
     // Everything below requires a session.
     const user = await requireUser(request, env);
 
@@ -370,7 +394,7 @@ export default {
       if (request.method === 'POST') return handleCreateProject(request, user, env);
     }
 
-    let match = pathname.match(/^\/projects\/(\d+)$/);
+    match = pathname.match(/^\/projects\/(\d+)$/);
     if (match) {
       if (!user) return json({ error: 'unauthorized' }, 401, env);
       const projectId = match[1];

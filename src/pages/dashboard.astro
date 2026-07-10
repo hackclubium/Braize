@@ -124,6 +124,7 @@ import PixelIcon from '../components/PixelIcon.astro';
   const { marked } = await import('https://esm.sh/marked@18');
 
   const WORKER_URL = 'https://braize-worker.braize.workers.dev';
+  const PUBLIC_PROJECT_BASE = `${import.meta.env.BASE_URL}project/`;
 
   const account = JSON.parse(localStorage.getItem('braize_hc_account') || 'null');
   const sessionToken = account?.sessionToken;
@@ -410,6 +411,7 @@ import PixelIcon from '../components/PixelIcon.astro';
 
         <div class="project-footer action-dock">
           <span class="dock-label">Project Controls</span>
+          <a class="btn-mini action-soft" href="${PUBLIC_PROJECT_BASE}?id=${project.id}" target="_blank" rel="noopener">Public Page</a>
           <button type="button" class="btn-mini danger delete-project action-danger">Delete Project</button>
         </div>
       </div>

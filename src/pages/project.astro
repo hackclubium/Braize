@@ -1,0 +1,209 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<Layout title="Project - Braize" description="Public Braize project journal.">
+  <main class="page public-project-page">
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href={base || '/'}>Braize</a>
+      <span class="sep">›</span>
+      <span>Project</span>
+    </nav>
+
+    <section class="window public-project-shell">
+      <div class="title-bar" style="--title-color: var(--hc-purple); --title-color-2: var(--hc-blue);">
+        <div class="title-bar-text">Public Project</div>
+      </div>
+      <div class="public-project-body" id="project-root">
+        <div class="loading">Loading project...</div>
+      </div>
+    </section>
+  </main>
+</Layout>
+
+<script type="module">
+  const { marked } = await import('https://esm.sh/marked@18');
+
+  const WORKER_URL = 'https://braize-worker.braize.workers.dev';
+  const root = document.getElementById('project-root');
+  const id = new URLSearchParams(window.location.search).get('id');
+
+  function escapeHtml(str) {
+    if (str == null) return '';
+    const div = document.createElement('div');
+    div.textContent = String(str);
+    return div.innerHTML;
+  }
+
+  function renderDate(value) {
+    const date = new Date(value + 'Z');
+    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  async function loadProject() {
+    if (!id) {
+      root.innerHTML = '<div class="error">Missing project id.</div>';
+      return;
+    }
+
+    try {
+      const res = await fetch(`${WORKER_URL}/public/projects/${encodeURIComponent(id)}`);
+      if (!res.ok) throw new Error(`request failed: ${res.status}`);
+      const { project, entries } = await res.json();
+      const repo = project.repo_url
+        ? `<a class="public-link" href="${escapeHtml(project.repo_url)}" target="_blank" rel="noopener">Repo</a>`
+        : '';
+      root.innerHTML = `
+        <header class="public-project-hero">
+          <div>
+            <p class="eyebrow">PUBLIC BUILD LOG</p>
+            <h1>${escapeHtml(project.name)}</h1>
+            <p class="public-maker">by ${escapeHtml(project.maker_name || 'unknown maker')}</p>
+          </div>
+          <div class="public-actions">
+            ${repo}
+            <button type="button" class="btn" id="copy-project-link">Copy Link</button>
+          </div>
+        </header>
+        ${project.description ? `<p class="public-description">${escapeHtml(project.description)}</p>` : ''}
+        <section class="public-meta" aria-label="Project metadata">
+          <span>${escapeHtml(project.status || 'in progress')}</span>
+          <span>${entries.length} journal ${entries.length === 1 ? 'entry' : 'entries'}</span>
+          <span>created ${renderDate(project.created_at)}</span>
+        </section>
+        <section class="public-journal">
+          ${entries.length ? entries.map((entry) => `
+            <article class="public-entry">
+              <div class="public-entry-head">
+                <strong>${entry.title ? escapeHtml(entry.title) : 'Untitled update'}</strong>
+                <span>${renderDate(entry.created_at)}</span>
+              </div>
+              <div class="journal-body">${marked.parse(entry.body)}</div>
+            </article>
+          `).join('') : '<div class="journal-empty">No journal entries yet.</div>'}
+        </section>
+      `;
+
+      document.title = `${project.name} - Braize`;
+      document.getElementById('copy-project-link')?.addEventListener('click', async () => {
+        await navigator.clipboard.writeText(window.location.href);
+      });
+    } catch (err) {
+      root.innerHTML = `<div class="error">Failed to load project. ${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  loadProject();
+</script>
+
+<style is:global>
+  .public-project-page {
+    padding-top: 24px;
+  }
+
+  .public-project-shell {
+    margin-top: 14px;
+    overflow: hidden;
+  }
+
+  .public-project-body {
+    padding: 18px;
+    background: linear-gradient(135deg, rgba(91, 192, 222, 0.16), rgba(166, 51, 214, 0.14)), var(--win-face);
+  }
+
+  .public-project-hero {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 18px;
+    background: #050505;
+    color: #fff;
+    box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.25);
+  }
+
+  .public-project-hero h1 {
+    margin: 0;
+    font-size: clamp(2.6rem, 8vw, 5rem);
+    color: #fff;
+    text-shadow: 3px 3px 0 var(--hc-purple), 6px 6px 0 rgba(91, 192, 222, 0.45);
+  }
+
+  .public-maker,
+  .public-description {
+    margin: 8px 0 0;
+    font-weight: bold;
+  }
+
+  .public-description {
+    padding: 16px;
+    background: #fff;
+    box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-dark-shadow);
+  }
+
+  .public-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .public-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--hc-yellow);
+    color: #111;
+    font-weight: bold;
+    text-decoration: none;
+    box-shadow: inset -1px -1px var(--win-dark-shadow), inset 1px 1px var(--win-light-highlight);
+  }
+
+  .public-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 18px 0;
+  }
+
+  .public-meta span {
+    padding: 6px 10px;
+    background: var(--hc-cyan);
+    color: #111;
+    font-weight: bold;
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2);
+  }
+
+  .public-journal {
+    display: grid;
+    gap: 14px;
+  }
+
+  .public-entry {
+    padding: 14px;
+    background: #fff;
+    box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-dark-shadow), 5px 5px 0 rgba(0, 0, 0, 0.18);
+  }
+
+  .public-entry-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--win-face);
+    font-family: var(--font-body);
+  }
+
+  @media (max-width: 640px) {
+    .public-project-hero,
+    .public-entry-head {
+      flex-direction: column;
+    }
+
+    .public-actions {
+      justify-content: flex-start;
+    }
+  }
+</style>
