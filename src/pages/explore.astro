@@ -1,0 +1,208 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<Layout title="Explore Projects - Braize" description="Browse public Braize projects.">
+  <main class="page explore-page">
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href={base || '/'}>Braize</a>
+      <span class="sep">›</span>
+      <span>Explore</span>
+    </nav>
+
+    <section class="window explore-shell">
+      <div class="title-bar" style="--title-color: var(--hc-green); --title-color-2: var(--hc-cyan);">
+        <div class="title-bar-text">Explore.exe</div>
+      </div>
+      <div class="explore-body">
+        <header class="explore-hero">
+          <p class="eyebrow">PUBLIC PROJECT INDEX</p>
+          <h1>Explore Builds</h1>
+          <p>Browse what everyone is shipping. Open any project to read its full journal.</p>
+        </header>
+
+        <div class="explore-toolbar">
+          <input id="project-search" type="search" placeholder="Search projects or makers" />
+          <span id="project-count">Loading...</span>
+        </div>
+
+        <div id="explore-grid" class="explore-grid">
+          <div class="loading">Loading projects...</div>
+        </div>
+      </div>
+    </section>
+  </main>
+</Layout>
+
+<script type="module">
+  const WORKER_URL = 'https://braize-worker.braize.workers.dev';
+  const PUBLIC_PROJECT_BASE = '/Braize/project/';
+  const grid = document.getElementById('explore-grid');
+  const search = document.getElementById('project-search');
+  const count = document.getElementById('project-count');
+  let projects = [];
+
+  function escapeHtml(str) {
+    if (str == null) return '';
+    const div = document.createElement('div');
+    div.textContent = String(str);
+    return div.innerHTML;
+  }
+
+  function renderDate(value) {
+    if (!value) return 'no journal yet';
+    const date = new Date(value + 'Z');
+    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+
+  function renderProjects(list) {
+    count.textContent = `${list.length} ${list.length === 1 ? 'project' : 'projects'}`;
+    if (!list.length) {
+      grid.innerHTML = '<div class="journal-empty">No projects found.</div>';
+      return;
+    }
+
+    grid.innerHTML = list.map((project) => `
+      <a class="explore-card" href="${PUBLIC_PROJECT_BASE}?id=${project.id}">
+        <div class="explore-card-top">
+          <span>${escapeHtml(project.status || 'in progress')}</span>
+          <span>${project.journal_count || 0} logs</span>
+        </div>
+        <h2>${escapeHtml(project.name)}</h2>
+        <p class="explore-maker">by ${escapeHtml(project.maker_name)}</p>
+        <p>${project.description ? escapeHtml(project.description) : 'No description yet.'}</p>
+        <div class="explore-card-foot">
+          <span>updated ${renderDate(project.last_journal_at || project.updated_at || project.created_at)}</span>
+          ${project.repo_url ? '<span>repo</span>' : '<span>no repo</span>'}
+        </div>
+      </a>
+    `).join('');
+  }
+
+  search.addEventListener('input', () => {
+    const q = search.value.trim().toLowerCase();
+    renderProjects(projects.filter((project) => [project.name, project.maker_name, project.description]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(q))));
+  });
+
+  try {
+    const res = await fetch(`${WORKER_URL}/public/projects`);
+    if (!res.ok) throw new Error(`request failed: ${res.status}`);
+    ({ projects } = await res.json());
+    renderProjects(projects);
+  } catch (err) {
+    grid.innerHTML = `<div class="error">Failed to load projects. ${escapeHtml(err.message)}</div>`;
+    count.textContent = 'Error';
+  }
+</script>
+
+<style is:global>
+  .explore-page {
+    padding-top: 24px;
+  }
+
+  .explore-shell {
+    margin-top: 14px;
+  }
+
+  .explore-body {
+    padding: 18px;
+    background: linear-gradient(135deg, rgba(51, 214, 166, 0.16), rgba(91, 192, 222, 0.16)), var(--win-face);
+  }
+
+  .explore-hero {
+    padding: 18px;
+    background: #050505;
+    color: #fff;
+    box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.25);
+  }
+
+  .explore-hero h1 {
+    margin: 0;
+    font-size: clamp(2.8rem, 9vw, 5.2rem);
+    color: #fff;
+    text-shadow: 3px 3px 0 var(--hc-green), 6px 6px 0 rgba(91, 192, 222, 0.45);
+  }
+
+  .explore-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin: 18px 0;
+  }
+
+  .explore-toolbar input {
+    flex: 1;
+    min-width: 0;
+    padding: 9px 10px;
+    font-family: var(--font-body);
+    background: #fff;
+    border: 0;
+    box-shadow: inset 1px 1px var(--win-dark-shadow), inset -1px -1px var(--win-light-highlight);
+  }
+
+  #project-count {
+    font-family: var(--font-display);
+    background: #000;
+    color: var(--hc-green);
+    padding: 4px 8px;
+  }
+
+  .explore-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+  }
+
+  .explore-card {
+    display: grid;
+    gap: 8px;
+    padding: 14px;
+    min-height: 210px;
+    color: #111;
+    text-decoration: none;
+    background: #fff;
+    box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-light-highlight), 7px 7px 0 rgba(0, 0, 0, 0.18);
+  }
+
+  .explore-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-light-highlight), 10px 10px 0 rgba(0, 0, 0, 0.2);
+  }
+
+  .explore-card-top,
+  .explore-card-foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-family: var(--font-display);
+    font-size: 0.82rem;
+  }
+
+  .explore-card-top span,
+  .explore-card-foot span {
+    background: var(--win-face);
+    padding: 2px 6px;
+  }
+
+  .explore-card h2 {
+    margin: 0;
+  }
+
+  .explore-maker {
+    margin: 0;
+    color: var(--hc-blue);
+    font-weight: bold;
+  }
+
+  @media (max-width: 640px) {
+    .explore-toolbar {
+      align-items: stretch;
+      flex-direction: column;
+    }
+  }
+</style>

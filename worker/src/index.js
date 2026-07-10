@@ -199,6 +199,23 @@ async function handlePublicProject(env, projectId) {
   return json({ project, entries }, 200, env);
 }
 
+async function handleListPublicProjects(env) {
+  const { results } = await env.DB.prepare(
+    `SELECT projects.id, projects.name, projects.description, projects.repo_url, projects.status,
+            projects.created_at, projects.updated_at,
+            COALESCE(users.display_name, 'Builder #' || users.id) AS maker_name,
+            COUNT(journal_entries.id) AS journal_count,
+            MAX(journal_entries.created_at) AS last_journal_at
+     FROM projects
+     JOIN users ON users.id = projects.user_id
+     LEFT JOIN journal_entries ON journal_entries.project_id = projects.id
+     GROUP BY projects.id
+     ORDER BY COALESCE(last_journal_at, projects.created_at) DESC`
+  ).all();
+
+  return json({ projects: results }, 200, env);
+}
+
 async function handleCreateProject(request, user, env) {
   const { name, description = null, repo_url = null, category = null } = await request.json();
   if (!name) return json({ error: 'name required' }, 400, env);
@@ -391,6 +408,10 @@ export default {
 
     if (request.method === 'POST' && pathname === '/oauth/hackatime') {
       return handleHackatimeOauthToken(request, env);
+    }
+
+    if (pathname === '/public/projects' && request.method === 'GET') {
+      return handleListPublicProjects(env);
     }
 
     let match = pathname.match(/^\/public\/projects\/(\d+)$/);
