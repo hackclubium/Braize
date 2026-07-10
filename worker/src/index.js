@@ -254,6 +254,39 @@ async function handleUpdateProject(request, user, env, projectId) {
   return json({ project: updated }, 200, env);
 }
 
+async function handleShipProject(request, user, env, projectId) {
+  const project = await getOwnedProject(env, user, projectId);
+  if (!project) return json({ error: 'not found' }, 404, env);
+
+  const { shipped = true } = await request.json().catch(() => ({}));
+
+  if (!shipped) {
+    await env.DB.prepare(`UPDATE projects SET shipped_at = NULL, updated_at = datetime('now') WHERE id = ?1`)
+      .bind(projectId)
+      .run();
+    const updated = await env.DB.prepare(`SELECT * FROM projects WHERE id = ?1`).bind(projectId).first();
+    return json({ project: updated }, 200, env);
+  }
+
+  if (!project.repo_url) return json({ error: 'add a repo URL before shipping' }, 400, env);
+
+  const { results: entries } = await env.DB.prepare(
+    `SELECT id FROM journal_entries WHERE project_id = ?1 LIMIT 1`
+  )
+    .bind(projectId)
+    .all();
+  if (entries.length === 0) return json({ error: 'post at least one journal entry before shipping' }, 400, env);
+
+  await env.DB.prepare(
+    `UPDATE projects SET status = 'shipped', shipped_at = datetime('now'), updated_at = datetime('now') WHERE id = ?1`
+  )
+    .bind(projectId)
+    .run();
+
+  const updated = await env.DB.prepare(`SELECT * FROM projects WHERE id = ?1`).bind(projectId).first();
+  return json({ project: updated }, 200, env);
+}
+
 async function handleDeleteProject(user, env, projectId) {
   const project = await getOwnedProject(env, user, projectId);
   if (!project) return json({ error: 'not found' }, 404, env);
@@ -449,6 +482,12 @@ export default {
       }
       if (request.method === 'PATCH') return handleUpdateProject(request, user, env, projectId);
       if (request.method === 'DELETE') return handleDeleteProject(user, env, projectId);
+    }
+
+    match = pathname.match(/^\/projects\/(\d+)\/ship$/);
+    if (match) {
+      if (!user) return json({ error: 'unauthorized' }, 401, env);
+      if (request.method === 'POST') return handleShipProject(request, user, env, match[1]);
     }
 
     match = pathname.match(/^\/projects\/(\d+)\/journal$/);

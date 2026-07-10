@@ -119,9 +119,13 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
           </div>
           <div class="manage-actions">
             <a class="btn" href="${PUBLIC_PROJECT_BASE}?p=${project.id}-${String(project.name || 'project').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'project'}" target="_blank" rel="noopener">Public View</a>
+            ${project.shipped_at
+              ? '<button type="button" class="btn" id="ship-toggle">Unship</button>'
+              : '<button type="button" class="btn btn-accent" id="ship-toggle">Ship Project</button>'}
             <button type="button" class="btn danger" id="delete-project">Delete</button>
           </div>
         </header>
+        ${project.shipped_at ? `<p class="shipped-banner">Shipped ${renderDate(project.shipped_at)}</p>` : ''}
 
         <div class="workshop-tabs" role="tablist">
           <button type="button" class="active" data-workshop-tab="details">Details</button>
@@ -234,6 +238,21 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       document.getElementById('delete-project').addEventListener('click', deleteProject);
       document.getElementById('delete-project-inline').addEventListener('click', deleteProject);
 
+      document.getElementById('ship-toggle').addEventListener('click', async () => {
+        const shipping = !project.shipped_at;
+        try {
+          const { project: updated } = await api(`/projects/${projectId}/ship`, {
+            method: 'POST',
+            body: JSON.stringify({ shipped: shipping }),
+          });
+          project.shipped_at = updated.shipped_at;
+          project.status = updated.status;
+          await loadProject();
+        } catch (err) {
+          alert(err.message);
+        }
+      });
+
       await loadJournal();
     } catch (err) {
       root.innerHTML = `<div class="error">Failed to load project. ${escapeHtml(err.message)}</div>`;
@@ -319,6 +338,16 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   .workshop-tabs button.active {
     background: #000;
     color: var(--hc-cyan);
+  }
+
+  .shipped-banner {
+    display: inline-block;
+    margin: 10px 0 0;
+    padding: 6px 10px;
+    background: var(--hc-green);
+    color: #111;
+    font-weight: bold;
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2);
   }
 
   .danger-zone {

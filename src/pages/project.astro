@@ -71,7 +71,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
         </header>
         ${project.description ? `<p class="public-description">${escapeHtml(project.description)}</p>` : ''}
         <section class="public-meta" aria-label="Project metadata">
-          <span>${escapeHtml(project.status || 'in progress')}</span>
+          ${project.shipped_at ? '<span class="shipped-pill">shipped</span>' : `<span>${escapeHtml(project.status || 'in progress')}</span>`}
           <span>${entries.length} journal ${entries.length === 1 ? 'entry' : 'entries'}</span>
           <span>created ${renderDate(project.created_at)}</span>
         </section>
@@ -197,6 +197,10 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     color: #111;
     font-weight: bold;
     box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2);
+  }
+
+  .public-meta .shipped-pill {
+    background: var(--hc-green);
   }
 
   .public-journal {

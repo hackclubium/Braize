@@ -386,7 +386,7 @@ import PixelIcon from '../components/PixelIcon.astro';
         </div>
         <div class="project-badges">
           <span class="project-hours-chip">${hoursText}</span>
-          <span class="project-status">${escapeHtml(project.status || 'in progress')}</span>
+          ${project.shipped_at ? '<span class="project-status shipped">shipped</span>' : `<span class="project-status">${escapeHtml(project.status || 'in progress')}</span>`}
         </div>
       </div>
       <div class="project-body">
@@ -1003,6 +1003,10 @@ import PixelIcon from '../components/PixelIcon.astro';
     box-shadow:
       inset -1px -1px rgba(0,0,0,0.38),
       inset 1px 1px rgba(255,255,255,0.25);
+  }
+  .project-status.shipped {
+    background: var(--hc-green);
+    color: #111;
   }
   .project-body {
     position: relative;
