@@ -19,6 +19,12 @@ function json(data, status, env) {
   });
 }
 
+function uploadUrl(env, key) {
+  const baseUrl = env.PUBLIC_UPLOAD_BASE_URL?.replace(/\/$/, '');
+  if (!baseUrl) return null;
+  return `${baseUrl}/${key}`;
+}
+
 async function requireUser(request, env) {
   const auth = request.headers.get('Authorization') ?? '';
   const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
@@ -317,6 +323,27 @@ async function handleListHackatimeProjects(user, env) {
   return json({ projects }, 200, env);
 }
 
+async function handleUploadImage(request, user, env) {
+  if (!env.JOURNAL_IMAGES) return json({ error: 'image storage not configured' }, 500, env);
+
+  const publicUrlBase = env.PUBLIC_UPLOAD_BASE_URL;
+  if (!publicUrlBase) return json({ error: 'public upload URL not configured' }, 500, env);
+
+  const form = await request.formData();
+  const file = form.get('image');
+  if (!(file instanceof File)) return json({ error: 'image required' }, 400, env);
+  if (!file.type.startsWith('image/')) return json({ error: 'image file required' }, 400, env);
+  if (file.size > 5 * 1024 * 1024) return json({ error: 'image too large' }, 413, env);
+
+  const ext = file.name.match(/\.(png|jpe?g|gif|webp)$/i)?.[1]?.toLowerCase() ?? 'bin';
+  const key = `journal/${user.id}/${crypto.randomUUID()}.${ext === 'jpeg' ? 'jpg' : ext}`;
+  await env.JOURNAL_IMAGES.put(key, file.stream(), {
+    httpMetadata: { contentType: file.type },
+  });
+
+  return json({ url: uploadUrl(env, key) }, 201, env);
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -376,6 +403,11 @@ export default {
     if (pathname === '/hackatime/projects' && request.method === 'GET') {
       if (!user) return json({ error: 'unauthorized' }, 401, env);
       return handleListHackatimeProjects(user, env);
+    }
+
+    if (pathname === '/uploads' && request.method === 'POST') {
+      if (!user) return json({ error: 'unauthorized' }, 401, env);
+      return handleUploadImage(request, user, env);
     }
 
     return json({ error: 'not found' }, 404, env);

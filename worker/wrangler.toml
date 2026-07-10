@@ -9,6 +9,8 @@ HACKCLUB_AUTH_REDIRECT_URI = "https://hackclubium.github.io/Braize/"
 HACKATIME_OAUTH_CLIENT_ID = "n45aqUCSVzAloc5wv2zTQKzQzCVHYphzdIJs1i3aWxs"
 HACKATIME_OAUTH_REDIRECT_URI = "https://hackclubium.github.io/Braize/"
 ALLOWED_ORIGIN = "https://hackclubium.github.io"
+# Set this to the bucket's public r2.dev URL or custom domain, without trailing slash.
+PUBLIC_UPLOAD_BASE_URL = ""
 
 # These are set separately as secrets, never in this file:
 #   wrangler secret put HACKCLUB_AUTH_CLIENT_SECRET
@@ -21,3 +23,7 @@ ALLOWED_ORIGIN = "https://hackclubium.github.io"
 binding = "DB"
 database_name = "braize-db"
 database_id = "2629c36f-797e-4af3-8d8b-0cbad0d18d7f"
+
+[[r2_buckets]]
+binding = "JOURNAL_IMAGES"
+bucket_name = "braize-journal-images"
