@@ -167,9 +167,22 @@ async function handleListProjects(user, env) {
   return json({ projects: results }, 200, env);
 }
 
+async function handleGetMe(user, env) {
+  return json({ user: { display_name: user.display_name ?? null, name: user.name ?? null } }, 200, env);
+}
+
+async function handleUpdateMe(request, user, env) {
+  const { display_name: displayName = null } = await request.json();
+  const clean = typeof displayName === 'string' ? displayName.trim().slice(0, 60) : null;
+  await env.DB.prepare(`UPDATE users SET display_name = ?1, updated_at = datetime('now') WHERE id = ?2`)
+    .bind(clean || null, user.id)
+    .run();
+  return json({ user: { display_name: clean || null, name: user.name ?? null } }, 200, env);
+}
+
 async function handlePublicProject(env, projectId) {
   const project = await env.DB.prepare(
-    `SELECT projects.*, users.name AS maker_name
+    `SELECT projects.*, COALESCE(users.display_name, 'Builder #' || users.id) AS maker_name
      FROM projects JOIN users ON users.id = projects.user_id
      WHERE projects.id = ?1`
   )
@@ -392,6 +405,12 @@ export default {
       if (!user) return json({ error: 'unauthorized' }, 401, env);
       if (request.method === 'GET') return handleListProjects(user, env);
       if (request.method === 'POST') return handleCreateProject(request, user, env);
+    }
+
+    if (pathname === '/me') {
+      if (!user) return json({ error: 'unauthorized' }, 401, env);
+      if (request.method === 'GET') return handleGetMe(user, env);
+      if (request.method === 'PATCH') return handleUpdateMe(request, user, env);
     }
 
     match = pathname.match(/^\/projects\/(\d+)$/);

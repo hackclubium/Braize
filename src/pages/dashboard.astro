@@ -72,6 +72,17 @@ import PixelIcon from '../components/PixelIcon.astro';
         </div>
       </div>
 
+      <Panel id="profile" title="Public Profile" icon="plug" color="var(--hc-green)" color2="var(--hc-cyan)">
+        <form id="profile-form" class="profile-form">
+          <label>
+            Public display name
+            <input type="text" name="display_name" placeholder="Shown on public project pages" maxlength="60" />
+          </label>
+          <button type="submit" class="btn-mini btn-accent-mini">Save Name</button>
+          <p class="profile-help">Real Hack Club name stays private. Public pages use this name, or Builder #ID if blank.</p>
+        </form>
+      </Panel>
+
       <Panel id="projects" title="My Projects" icon="folder" color="var(--hc-blue)" color2="var(--hc-cyan)">
         <div class="project-toolbar">
           <div>
@@ -133,6 +144,7 @@ import PixelIcon from '../components/PixelIcon.astro';
   const dashboardBody = document.getElementById('dashboard-body');
   const projectList = document.getElementById('project-list');
   const newProjectForm = document.getElementById('new-project-form');
+  const profileForm = document.getElementById('profile-form');
   const addProjectToggle = document.getElementById('add-project-toggle');
   const addProjectToggleLabel = document.getElementById('add-project-toggle-label');
   const cancelAddProject = document.getElementById('cancel-add-project');
@@ -141,6 +153,7 @@ import PixelIcon from '../components/PixelIcon.astro';
     signedOutNotice.style.display = 'block';
   } else {
     dashboardBody.style.display = 'block';
+    loadProfile();
     loadProjects();
   }
 
@@ -310,6 +323,15 @@ import PixelIcon from '../components/PixelIcon.astro';
     }
   }
 
+  async function loadProfile() {
+    try {
+      const { user } = await api('/me');
+      profileForm.display_name.value = user.display_name || '';
+    } catch (err) {
+      profileForm.querySelector('.profile-help').textContent = `Profile failed to load. ${err.message}`;
+    }
+  }
+
   function renderProjectList(projects) {
     projectList.innerHTML = '';
     if (projects.length === 0) {
@@ -464,6 +486,19 @@ import PixelIcon from '../components/PixelIcon.astro';
     newProjectForm.hidden = true;
     newProjectForm.reset();
     addProjectToggleLabel.textContent = '+ New Project';
+  });
+
+  profileForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      await api('/me', {
+        method: 'PATCH',
+        body: JSON.stringify({ display_name: profileForm.display_name.value.trim() || null }),
+      });
+      profileForm.querySelector('.profile-help').textContent = 'Saved. Public pages use this name now.';
+    } catch (err) {
+      profileForm.querySelector('.profile-help').textContent = `Save failed. ${err.message}`;
+    }
   });
 
   newProjectForm.addEventListener('submit', async (e) => {
@@ -702,6 +737,39 @@ import PixelIcon from '../components/PixelIcon.astro';
     max-width: 520px;
     color: rgba(0, 0, 0, 0.68);
     font-size: 0.88rem;
+  }
+  .profile-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: end;
+    margin-bottom: 18px;
+  }
+
+  .profile-form label {
+    display: grid;
+    gap: 4px;
+    min-width: min(100%, 280px);
+    font-family: var(--font-body);
+    font-weight: bold;
+  }
+
+  .profile-form input {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    padding: 6px 8px;
+    background: var(--win-face);
+    border: 0;
+    box-shadow:
+      inset 1px 1px var(--win-dark-shadow),
+      inset -1px -1px var(--win-light-highlight);
+  }
+
+  .profile-help {
+    flex-basis: 100%;
+    margin: 0;
+    color: rgba(0, 0, 0, 0.68);
+    font-size: 0.84rem;
   }
   .project-form[hidden] {
     display: none;
