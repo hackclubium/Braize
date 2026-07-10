@@ -28,7 +28,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
   const WORKER_URL = 'https://braize-worker.braize.workers.dev';
   const root = document.getElementById('project-root');
-  const id = new URLSearchParams(window.location.search).get('id');
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('p') || params.get('id');
 
   function escapeHtml(str) {
     if (str == null) return '';
@@ -57,6 +58,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
         : '';
       root.innerHTML = `
         <header class="public-project-hero">
+          <div class="project-address">braize://project/${escapeHtml(id)}</div>
           <div>
             <p class="eyebrow">PUBLIC BUILD LOG</p>
             <h1>${escapeHtml(project.name)}</h1>
@@ -110,10 +112,14 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
   .public-project-body {
     padding: 18px;
-    background: linear-gradient(135deg, rgba(91, 192, 222, 0.16), rgba(166, 51, 214, 0.14)), var(--win-face);
+    background:
+      radial-gradient(circle at 100% 0, rgba(166, 51, 214, 0.28), transparent 26%),
+      linear-gradient(135deg, rgba(91, 192, 222, 0.16), rgba(166, 51, 214, 0.14)),
+      var(--win-face);
   }
 
   .public-project-hero {
+    position: relative;
     display: flex;
     justify-content: space-between;
     gap: 16px;
@@ -122,6 +128,23 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     background: #050505;
     color: #fff;
     box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.25);
+  }
+
+  .project-address {
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    top: 12px;
+    padding: 4px 8px;
+    background: #fff;
+    color: #111;
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    box-shadow: inset 1px 1px #777, inset -1px -1px #fff;
+  }
+
+  .public-project-hero > div:not(.project-address) {
+    margin-top: 34px;
   }
 
   .public-project-hero h1 {
@@ -182,9 +205,22 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   }
 
   .public-entry {
+    position: relative;
     padding: 14px;
-    background: #fff;
+    background:
+      linear-gradient(90deg, var(--hc-cyan) 0 5px, transparent 5px),
+      #fff;
     box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-dark-shadow), 5px 5px 0 rgba(0, 0, 0, 0.18);
+  }
+
+  .public-entry::after {
+    content: 'LOG';
+    position: absolute;
+    right: 12px;
+    bottom: 8px;
+    font-family: var(--font-display);
+    font-size: 2.4rem;
+    color: rgba(166, 51, 214, 0.08);
   }
 
   .public-entry-head {

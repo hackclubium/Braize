@@ -34,7 +34,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   const account = JSON.parse(localStorage.getItem('braize_hc_account') || 'null');
   const sessionToken = account?.sessionToken;
   const root = document.getElementById('manage-root');
-  const projectId = new URLSearchParams(window.location.search).get('id');
+  const params = new URLSearchParams(window.location.search);
+  const projectKey = params.get('p') || params.get('id');
+  const projectId = projectKey?.match(/^\d+/)?.[0] ?? projectKey;
 
   function authHeaders(extra = {}) {
     return { Authorization: `Bearer ${sessionToken}`, ...extra };
@@ -116,21 +118,31 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
             <p>Customize project details, Hackatime link, and journal proof here.</p>
           </div>
           <div class="manage-actions">
-            <a class="btn" href="${PUBLIC_PROJECT_BASE}?id=${project.id}" target="_blank" rel="noopener">Public View</a>
+            <a class="btn" href="${PUBLIC_PROJECT_BASE}?p=${project.id}-${String(project.name || 'project').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'project'}" target="_blank" rel="noopener">Public View</a>
             <button type="button" class="btn danger" id="delete-project">Delete</button>
           </div>
         </header>
 
-        <form class="manage-form" id="project-form">
+        <div class="workshop-tabs" role="tablist">
+          <button type="button" class="active" data-workshop-tab="details">Details</button>
+          <button type="button" data-workshop-tab="journal">Journal</button>
+          <button type="button" data-workshop-tab="danger">Danger</button>
+        </div>
+
+        <form class="manage-form workshop-panel" id="project-form" data-workshop-panel="details">
           <label>Name<input name="name" value="${escapeHtml(project.name)}" required maxlength="80"></label>
           <label>Repo URL<input name="repo_url" value="${escapeHtml(project.repo_url || '')}"></label>
           <label>Status<input name="status" value="${escapeHtml(project.status || '')}"></label>
+          <label>Category<select name="category">
+            <option value="">Unsorted</option>
+            ${['browser', 'extension', 'buddy', 'weird'].map((category) => `<option value="${category}" ${project.category === category ? 'selected' : ''}>${category}</option>`).join('')}
+          </select></label>
           <label>Hackatime Project<input name="hackatime_project_name" value="${escapeHtml(project.hackatime_project_name || '')}"></label>
           <label>Description<textarea name="description" rows="4">${escapeHtml(project.description || '')}</textarea></label>
           <button type="submit" class="btn btn-accent">Save Project</button>
         </form>
 
-        <section class="manage-journal-box">
+        <section class="manage-journal-box workshop-panel" data-workshop-panel="journal" hidden>
           <h2>Journal</h2>
           <form class="manage-form" id="journal-form">
             <input name="title" placeholder="Entry title (optional)" maxlength="100">
@@ -146,6 +158,12 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
           </form>
           <div id="manage-journal" class="manage-journal"><div class="loading">Loading journal...</div></div>
         </section>
+
+        <section class="danger-zone workshop-panel" data-workshop-panel="danger" hidden>
+          <h2>Danger Zone</h2>
+          <p>Delete removes this project and journal entries.</p>
+          <button type="button" class="btn danger" id="delete-project-inline">Delete Project</button>
+        </section>
       `;
       document.title = `${project.name} - Manage - Braize`;
 
@@ -158,6 +176,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
             name: form.name.value.trim(),
             repo_url: form.repo_url.value.trim() || null,
             status: form.status.value.trim() || null,
+            category: form.category.value || null,
             hackatime_project_name: form.hackatime_project_name.value.trim() || null,
             description: form.description.value.trim() || null,
           }),
@@ -198,11 +217,22 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
         await loadJournal();
       });
 
-      document.getElementById('delete-project').addEventListener('click', async () => {
+      document.querySelectorAll('[data-workshop-tab]').forEach((tab) => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('[data-workshop-tab]').forEach((item) => item.classList.toggle('active', item === tab));
+          document.querySelectorAll('[data-workshop-panel]').forEach((panel) => {
+            panel.hidden = panel.dataset.workshopPanel !== tab.dataset.workshopTab;
+          });
+        });
+      });
+
+      const deleteProject = async () => {
         if (!confirm('Delete this project and its journal entries?')) return;
         await api(`/projects/${projectId}`, { method: 'DELETE' });
         window.location.href = '/Braize/dashboard/';
-      });
+      };
+      document.getElementById('delete-project').addEventListener('click', deleteProject);
+      document.getElementById('delete-project-inline').addEventListener('click', deleteProject);
 
       await loadJournal();
     } catch (err) {
@@ -224,7 +254,11 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
   .manage-body {
     padding: 18px;
-    background: linear-gradient(135deg, rgba(241, 196, 15, 0.2), rgba(91, 192, 222, 0.14)), var(--win-face);
+    background:
+      repeating-linear-gradient(90deg, rgba(0,0,0,0.04) 0 1px, transparent 1px 24px),
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.03) 0 1px, transparent 1px 24px),
+      linear-gradient(135deg, rgba(241, 196, 15, 0.2), rgba(91, 192, 222, 0.14)),
+      var(--win-face);
   }
 
   .manage-hero {
@@ -262,6 +296,34 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     gap: 10px;
     margin-top: 18px;
     padding: 14px;
+    background: linear-gradient(180deg, #fff, #f7fbff);
+    box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-dark-shadow);
+  }
+
+  .workshop-tabs {
+    display: flex;
+    gap: 6px;
+    margin-top: 18px;
+    flex-wrap: wrap;
+  }
+
+  .workshop-tabs button {
+    padding: 8px 12px;
+    border: 0;
+    font-family: var(--font-display);
+    background: var(--win-face);
+    box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-light-highlight);
+    cursor: pointer;
+  }
+
+  .workshop-tabs button.active {
+    background: #000;
+    color: var(--hc-cyan);
+  }
+
+  .danger-zone {
+    margin-top: 18px;
+    padding: 14px;
     background: #fff;
     box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-dark-shadow);
   }
@@ -273,6 +335,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   }
 
   .manage-form input,
+  .manage-form select,
   .manage-form textarea {
     font-family: var(--font-body);
     font-size: 0.92rem;
@@ -294,7 +357,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
   .manage-entry {
     padding: 14px;
-    background: #fff;
+    background: linear-gradient(90deg, var(--hc-yellow) 0 5px, #fff 5px);
     box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-light-highlight), 5px 5px 0 rgba(0, 0, 0, 0.18);
   }
 

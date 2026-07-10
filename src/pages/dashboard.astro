@@ -97,6 +97,13 @@ import PixelIcon from '../components/PixelIcon.astro';
         <form id="new-project-form" class="project-form" hidden>
           <input type="text" name="name" placeholder="Project name" required maxlength="80" />
           <input type="text" name="repo_url" placeholder="Repo URL (optional)" />
+          <select name="category">
+            <option value="">Category</option>
+            <option value="browser">Browser</option>
+            <option value="extension">Extension</option>
+            <option value="buddy">Buddy</option>
+            <option value="weird">Weird</option>
+          </select>
           <textarea name="description" placeholder="Description (optional)" rows="2"></textarea>
           <div class="form-actions">
             <button type="submit" class="btn btn-accent">Create</button>
@@ -273,6 +280,11 @@ import PixelIcon from '../components/PixelIcon.astro';
     return div.innerHTML;
   }
 
+  function projectSlug(project) {
+    const slug = String(project.name || 'project').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'project';
+    return `${project.id}-${slug}`;
+  }
+
   function insertAtCursor(textarea, text) {
     const start = textarea.selectionStart ?? textarea.value.length;
     const end = textarea.selectionEnd ?? textarea.value.length;
@@ -414,8 +426,8 @@ import PixelIcon from '../components/PixelIcon.astro';
 
         <div class="project-footer action-dock">
           <span class="dock-label">Project Views</span>
-          <a class="btn-mini btn-accent-mini" href="/Braize/project/manage/?id=${project.id}">Manage</a>
-          <a class="btn-mini action-soft" href="${PUBLIC_PROJECT_BASE}?id=${project.id}" target="_blank" rel="noopener">Open Full Project</a>
+          <a class="btn-mini btn-accent-mini" href="/Braize/project/manage/?p=${projectSlug(project)}">Manage</a>
+          <a class="btn-mini action-soft" href="${PUBLIC_PROJECT_BASE}?p=${projectSlug(project)}" target="_blank" rel="noopener">Open Full Project</a>
         </div>
       </div>
     `;
@@ -507,11 +519,12 @@ import PixelIcon from '../components/PixelIcon.astro';
     const name = form.name.value.trim();
     if (!name) return;
     const repo_url = form.repo_url.value.trim() || null;
+    const category = form.category.value || null;
     const description = form.description.value.trim() || null;
     try {
       await api('/projects', {
         method: 'POST',
-        body: JSON.stringify({ name, repo_url, description }),
+        body: JSON.stringify({ name, repo_url, category, description }),
       });
       form.reset();
       newProjectForm.hidden = true;
@@ -788,6 +801,7 @@ import PixelIcon from '../components/PixelIcon.astro';
       inset 1px 1px var(--win-dark-shadow);
   }
   .project-form input,
+  .project-form select,
   .project-form textarea,
   .journal-form input,
   .journal-form textarea,

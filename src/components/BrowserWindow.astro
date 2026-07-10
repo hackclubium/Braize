@@ -176,17 +176,50 @@ const tabs = [
 <style>
   .hero-window {
     margin-top: 24px;
+    box-shadow:
+      inset -1px -1px var(--win-dark-shadow),
+      inset 1px 1px var(--win-light-highlight),
+      0 0 0 4px rgba(255,255,255,0.1),
+      18px 18px 0 rgba(0,0,0,0.28),
+      0 0 44px rgba(91, 192, 222, 0.32);
   }
 
   .hero-body {
     text-align: center;
-    padding: 40px 20px 32px;
+    padding: 58px 20px 44px;
     position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 50% 0, rgba(255,255,255,0.8), transparent 26%),
+      linear-gradient(135deg, rgba(236, 55, 80, 0.18), rgba(91, 192, 222, 0.22)),
+      var(--win-face);
+  }
+
+  .hero-body::before {
+    content: '';
+    position: absolute;
+    inset: 18px;
+    border: 2px dotted rgba(0,0,0,0.24);
+    pointer-events: none;
+  }
+
+  .hero-body h1 {
+    font-size: clamp(3.4rem, 11vw, 7.4rem);
+    color: #fff;
+    text-shadow:
+      4px 4px 0 var(--hc-red),
+      8px 8px 0 var(--hc-blue),
+      12px 12px 0 rgba(0,0,0,0.28),
+      0 0 24px rgba(255,255,255,0.5);
   }
 
   .hero-sub {
-    max-width: 560px;
+    max-width: 680px;
     margin: 0 auto 20px;
+    font-weight: bold;
+    background: rgba(255,255,255,0.7);
+    padding: 10px 12px;
+    box-shadow: inset 1px 1px var(--win-light-highlight), inset -1px -1px var(--win-shadow);
   }
 
   .hero-actions {

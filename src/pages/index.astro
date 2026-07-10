@@ -16,6 +16,12 @@ import Footer from '../components/Footer.astro';
   <main class="page">
     <BrowserWindow />
 
+    <Panel id="live" title="Live Ships" icon="folder" color="var(--hc-yellow)" color2="var(--hc-orange)">
+      <div class="live-ships" id="live-ships">
+        <div class="loading">Scanning public builds...</div>
+      </div>
+    </Panel>
+
     <Panel id="about" title="About Braize" icon="info" color="var(--hc-blue)" color2="var(--hc-cyan)">
       <p>
         Braize is a Hack Club YSWS, short for "You Ship, We Ship." You build
@@ -49,3 +55,81 @@ import Footer from '../components/Footer.astro';
     <Footer />
   </main>
 </Layout>
+
+<script type="module">
+  const WORKER_URL = 'https://braize-worker.braize.workers.dev';
+  const root = document.getElementById('live-ships');
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = String(str ?? '');
+    return div.innerHTML;
+  }
+
+  function projectSlug(project) {
+    const slug = String(project.name || 'project').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'project';
+    return `${project.id}-${slug}`;
+  }
+
+  try {
+    const res = await fetch(`${WORKER_URL}/public/projects`);
+    if (!res.ok) throw new Error(`request failed: ${res.status}`);
+    const { projects } = await res.json();
+    root.innerHTML = projects.slice(0, 4).map((project) => `
+      <a class="live-ship" href="/Braize/project/?p=${projectSlug(project)}">
+        <strong>${escapeHtml(project.name)}</strong>
+        <span>${escapeHtml(project.maker_name)} · ${project.journal_count || 0} logs</span>
+      </a>
+    `).join('') || '<div class="journal-empty">No public builds yet.</div>';
+  } catch (err) {
+    root.innerHTML = `<div class="error">Could not load live ships. ${escapeHtml(err.message)}</div>`;
+  }
+</script>
+
+<style is:global>
+  .live-ships {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    padding: 12px;
+    background: #050505;
+    box-shadow: inset 0 0 0 1px var(--hc-cyan), 6px 6px 0 rgba(0,0,0,0.2);
+  }
+
+  .live-ship {
+    position: relative;
+    display: grid;
+    gap: 5px;
+    padding: 12px;
+    color: #111;
+    text-decoration: none;
+    background:
+      linear-gradient(135deg, rgba(91,192,222,0.22), rgba(241,196,15,0.18)),
+      #fff;
+    box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-light-highlight), 5px 5px 0 rgba(0, 0, 0, 0.16);
+  }
+
+  .live-ship::before {
+    content: 'RUN';
+    position: absolute;
+    top: 6px;
+    right: 7px;
+    font-family: var(--font-display);
+    background: #000;
+    color: var(--hc-green);
+    padding: 0 5px;
+  }
+
+  .live-ship:hover {
+    transform: translate(-2px, -2px);
+  }
+
+  .live-ship strong {
+    font-size: 1.05rem;
+  }
+
+  .live-ship span {
+    color: var(--hc-blue);
+    font-weight: bold;
+  }
+</style>

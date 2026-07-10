@@ -201,7 +201,7 @@ async function handlePublicProject(env, projectId) {
 
 async function handleListPublicProjects(env) {
   const { results } = await env.DB.prepare(
-    `SELECT projects.id, projects.name, projects.description, projects.repo_url, projects.status,
+    `SELECT projects.id, projects.name, projects.description, projects.repo_url, projects.category, projects.status,
             projects.created_at, projects.updated_at,
             COALESCE(users.display_name, 'Builder #' || users.id) AS maker_name,
             COUNT(journal_entries.id) AS journal_count,
@@ -228,6 +228,10 @@ async function handleCreateProject(request, user, env) {
 
   const project = await env.DB.prepare(`SELECT * FROM projects WHERE id = ?1`).bind(meta.last_row_id).first();
   return json({ project }, 201, env);
+}
+
+function projectIdFromSlug(value) {
+  return String(value).match(/^\d+/)?.[0] ?? value;
 }
 
 async function handleUpdateProject(request, user, env, projectId) {
@@ -414,9 +418,9 @@ export default {
       return handleListPublicProjects(env);
     }
 
-    let match = pathname.match(/^\/public\/projects\/(\d+)$/);
+    let match = pathname.match(/^\/public\/projects\/([^/]+)$/);
     if (match && request.method === 'GET') {
-      return handlePublicProject(env, match[1]);
+      return handlePublicProject(env, projectIdFromSlug(match[1]));
     }
 
     // Everything below requires a session.
