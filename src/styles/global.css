@@ -136,6 +136,7 @@ body::after {
   pointer-events: none;
   z-index: 0;
   overflow: hidden;
+  contain: strict;
 }
 
 .particle {
@@ -145,6 +146,7 @@ body::after {
   background: var(--hc-cyan);
   opacity: 0;
   animation: float-up linear infinite;
+  will-change: transform, opacity;
 }
 
 .ambient-beams {
@@ -154,6 +156,7 @@ body::after {
   pointer-events: none;
   overflow: hidden;
   mix-blend-mode: screen;
+  contain: strict;
 }
 
 .ambient-beams span {
@@ -164,9 +167,10 @@ body::after {
   height: 150vh;
   opacity: 0.24;
   background: linear-gradient(90deg, transparent, currentColor, transparent);
-  filter: blur(18px);
+  filter: blur(12px);
   transform: rotate(18deg);
   animation: beam-sweep 9s ease-in-out infinite;
+  will-change: transform, opacity;
 }
 
 .ambient-beams span:nth-child(1) { left: 4%; color: var(--hc-cyan); }
@@ -203,8 +207,9 @@ body::after {
   pointer-events: none;
   background: var(--hc-yellow);
   clip-path: polygon(50% 0, 60% 36%, 100% 50%, 60% 64%, 50% 100%, 40% 64%, 0 50%, 40% 36%);
-  filter: drop-shadow(0 0 6px var(--hc-yellow));
-  animation: cursor-spark 0.65s ease-out forwards;
+  box-shadow: 0 0 10px var(--hc-yellow);
+  animation: cursor-spark 0.5s ease-out forwards;
+  will-change: transform, opacity;
 }
 
 @keyframes float-up {
@@ -467,13 +472,15 @@ a {
   pointer-events: none;
   opacity: 0;
   background: conic-gradient(var(--hc-red), var(--hc-yellow), var(--hc-green), var(--hc-cyan), var(--hc-purple), var(--hc-red));
-  filter: blur(16px);
+  filter: blur(10px);
   transition: opacity 0.18s ease;
   animation: aura-spin 4s linear infinite;
+  animation-play-state: paused;
 }
 
 .window:hover::after {
   opacity: 0.38;
+  animation-play-state: running;
 }
 
 .title-bar {
@@ -702,6 +709,8 @@ a {
 
 .panel {
   margin-bottom: 28px;
+  content-visibility: auto;
+  contain-intrinsic-size: 360px;
 }
 
 .card-grid {
@@ -1254,6 +1263,18 @@ a {
   .splash-window,
   .splash-log span {
     animation: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .ambient-beams,
+  .cursor-spark,
+  .window::after {
+    display: none;
+  }
+
+  .crt-hud {
+    display: none;
   }
 }
 

@@ -99,7 +99,9 @@ const iconSvgs = {
         const container = document.getElementById('particle-field');
         if (!container) return;
         const colors = ['#5bc0de', '#33d6a6', '#ec3750', '#f1c40f', '#a633d6', '#ff8c37'];
-        for (let i = 0; i < 30; i++) {
+        const count = window.matchMedia('(max-width: 720px)').matches ? 10 : 18;
+        const fragment = document.createDocumentFragment();
+        for (let i = 0; i < count; i++) {
           const p = document.createElement('div');
           p.className = 'particle';
           p.style.left = Math.random() * 100 + '%';
@@ -108,18 +110,22 @@ const iconSvgs = {
           p.style.width = (2 + Math.random() * 4) + 'px';
           p.style.height = p.style.width;
           p.style.background = colors[Math.floor(Math.random() * colors.length)];
-          container.appendChild(p);
+          fragment.appendChild(p);
         }
+        container.appendChild(fragment);
       })();
 
       // pointer sparks
       (function () {
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
         let last = 0;
+        let active = 0;
         document.addEventListener('pointermove', (event) => {
           const now = performance.now();
-          if (now - last < 70) return;
+          if (now - last < 120 || active > 10) return;
           last = now;
+          active++;
           const spark = document.createElement('span');
           spark.className = 'cursor-spark';
           spark.style.left = event.clientX + 'px';
@@ -127,7 +133,10 @@ const iconSvgs = {
           spark.style.setProperty('--spark-x', (Math.random() * 40 - 20) + 'px');
           spark.style.setProperty('--spark-y', (Math.random() * -34 - 8) + 'px');
           document.body.appendChild(spark);
-          setTimeout(() => spark.remove(), 650);
+          setTimeout(() => {
+            spark.remove();
+            active--;
+          }, 500);
         }, { passive: true });
       })();
 
