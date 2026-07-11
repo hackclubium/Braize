@@ -201,7 +201,7 @@ async function handlePublicProject(env, projectId) {
 
 async function handleListPublicProjects(env) {
   const { results } = await env.DB.prepare(
-    `SELECT projects.id, projects.name, projects.description, projects.repo_url, projects.category, projects.status,
+    `SELECT projects.id, projects.name, projects.description, projects.repo_url, projects.lapse_url, projects.category, projects.status,
             projects.created_at, projects.updated_at,
             COALESCE(users.display_name, 'Builder #' || users.id) AS maker_name,
             COUNT(journal_entries.id) AS journal_count,
@@ -217,17 +217,31 @@ async function handleListPublicProjects(env) {
 }
 
 async function handleCreateProject(request, user, env) {
-  const { name, description = null, repo_url = null, category = null } = await request.json();
+  const { name, description = null, repo_url = null, category = null, lapse_url = null } = await request.json();
   if (!name) return json({ error: 'name required' }, 400, env);
+  const cleanLapseUrl = cleanLapseUrlOrNull(lapse_url);
+  if (lapse_url && !cleanLapseUrl) return json({ error: 'lapse_url must be on https://lapse.hackclub.com' }, 400, env);
 
   const { meta } = await env.DB.prepare(
-    `INSERT INTO projects (user_id, name, description, repo_url, category) VALUES (?1, ?2, ?3, ?4, ?5)`
+    `INSERT INTO projects (user_id, name, description, repo_url, category, lapse_url) VALUES (?1, ?2, ?3, ?4, ?5, ?6)`
   )
-    .bind(user.id, name, description, repo_url, category)
+    .bind(user.id, name, description, repo_url, category, cleanLapseUrl)
     .run();
 
   const project = await env.DB.prepare(`SELECT * FROM projects WHERE id = ?1`).bind(meta.last_row_id).first();
   return json({ project }, 201, env);
+}
+
+function cleanLapseUrlOrNull(value) {
+  const url = typeof value === 'string' ? value.trim() : '';
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'https:' || parsed.hostname !== 'lapse.hackclub.com') return null;
+    return parsed.toString();
+  } catch {
+    return null;
+  }
 }
 
 function projectIdFromSlug(value) {
@@ -239,7 +253,12 @@ async function handleUpdateProject(request, user, env, projectId) {
   if (!project) return json({ error: 'not found' }, 404, env);
 
   const body = await request.json();
-  const fields = ['name', 'description', 'repo_url', 'category', 'status', 'hackatime_project_name'];
+  if ('lapse_url' in body) {
+    const cleanLapseUrl = cleanLapseUrlOrNull(body.lapse_url);
+    if (body.lapse_url && !cleanLapseUrl) return json({ error: 'lapse_url must be on https://lapse.hackclub.com' }, 400, env);
+    body.lapse_url = cleanLapseUrl;
+  }
+  const fields = ['name', 'description', 'repo_url', 'category', 'status', 'hackatime_project_name', 'lapse_url'];
   const updates = fields.filter((f) => f in body);
   if (updates.length === 0) return json({ error: 'nothing to update' }, 400, env);
 

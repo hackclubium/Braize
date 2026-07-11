@@ -132,6 +132,7 @@ import TopNav from '../../components/TopNav.astro';
         <form class="manage-form workshop-panel" id="project-form" data-workshop-panel="details">
           <label>Name<input name="name" value="${escapeHtml(project.name)}" required maxlength="80"></label>
           <label>Repo URL<input name="repo_url" value="${escapeHtml(project.repo_url || '')}"></label>
+          <label>Lapse URL<input name="lapse_url" type="url" value="${escapeHtml(project.lapse_url || '')}" placeholder="https://lapse.hackclub.com/..."></label>
           <label>Status<input name="status" value="${escapeHtml(project.status || '')}"></label>
           <label>Category<select name="category">
             <option value="">Unsorted</option>
@@ -175,6 +176,7 @@ import TopNav from '../../components/TopNav.astro';
           body: JSON.stringify({
             name: form.name.value.trim(),
             repo_url: form.repo_url.value.trim() || null,
+            lapse_url: form.lapse_url.value.trim() || null,
             status: form.status.value.trim() || null,
             category: form.category.value || null,
             hackatime_project_name: form.hackatime_project_name.value.trim() || null,

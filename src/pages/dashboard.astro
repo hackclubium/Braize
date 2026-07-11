@@ -92,6 +92,7 @@ import TopNav from '../components/TopNav.astro';
         <form id="new-project-form" class="project-form" hidden>
           <input type="text" name="name" placeholder="Project name" required maxlength="80" />
           <input type="text" name="repo_url" placeholder="Repo URL (optional)" />
+          <input type="url" name="lapse_url" placeholder="Lapse URL (optional)" />
           <select name="category">
             <option value="">Category</option>
             <option value="browser">Browser</option>
@@ -389,6 +390,7 @@ import TopNav from '../components/TopNav.astro';
           <div class="project-copy">
             ${project.description ? `<p class="project-desc">${escapeHtml(project.description)}</p>` : '<p class="project-desc muted">No description yet. Add context before review day.</p>'}
             ${project.repo_url ? `<p class="project-repo"><span>Repo</span><a href="${escapeHtml(project.repo_url)}" target="_blank" rel="noopener">${escapeHtml(project.repo_url)}</a></p>` : '<p class="project-repo muted"><span>Repo</span>not added</p>'}
+            ${project.lapse_url ? `<p class="project-repo"><span>Lapse</span><a href="${escapeHtml(project.lapse_url)}" target="_blank" rel="noopener">${escapeHtml(project.lapse_url)}</a></p>` : '<p class="project-repo muted"><span>Lapse</span>not added</p>'}
           </div>
           <div class="project-score">
             <strong>${hours > 0 ? hours.toFixed(1) : '0.0'}</strong>
@@ -514,12 +516,13 @@ import TopNav from '../components/TopNav.astro';
     const name = form.name.value.trim();
     if (!name) return;
     const repo_url = form.repo_url.value.trim() || null;
+    const lapse_url = form.lapse_url.value.trim() || null;
     const category = form.category.value || null;
     const description = form.description.value.trim() || null;
     try {
       await api('/projects', {
         method: 'POST',
-        body: JSON.stringify({ name, repo_url, category, description }),
+        body: JSON.stringify({ name, repo_url, lapse_url, category, description }),
       });
       form.reset();
       newProjectForm.hidden = true;

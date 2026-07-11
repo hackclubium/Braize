@@ -51,6 +51,9 @@ import TopNav from '../components/TopNav.astro';
       const repo = project.repo_url
         ? `<a class="public-link" href="${escapeHtml(project.repo_url)}" target="_blank" rel="noopener">Repo</a>`
         : '';
+      const lapse = project.lapse_url
+        ? `<a class="public-link lapse-link" href="${escapeHtml(project.lapse_url)}" target="_blank" rel="noopener">Lapse</a>`
+        : '';
       root.innerHTML = `
         <header class="public-project-hero">
           <div class="project-address">braize://project/${escapeHtml(id)}</div>
@@ -61,6 +64,7 @@ import TopNav from '../components/TopNav.astro';
           </div>
           <div class="public-actions">
             ${repo}
+            ${lapse}
             <button type="button" class="btn" id="copy-project-link">Copy Link</button>
           </div>
         </header>
@@ -177,6 +181,10 @@ import TopNav from '../components/TopNav.astro';
     font-weight: bold;
     text-decoration: none;
     box-shadow: inset -1px -1px var(--win-dark-shadow), inset 1px 1px var(--win-light-highlight);
+  }
+
+  .lapse-link {
+    background: var(--hc-cyan);
   }
 
   .public-meta {
