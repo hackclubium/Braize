@@ -48,17 +48,32 @@ const tabs = [
   </div>
 
   <div class="window-body hero-body">
-    <h1 id="hero-heading">Ship anything browser-related.</h1>
-    <p class="hero-sub">
-      Braize is a Hack Club YSWS. Build a browser, an extension, a browsing
-      buddy, or whatever "browsing" means to you. Ship it, and we'll ship you
-      something back.
-    </p>
-    <div class="hero-actions">
-      <a class="btn btn-accent" href="/Braize/dashboard/">Open Dashboard</a>
-      <a class="btn" href="/Braize/explore/">Explore Projects</a>
-      <a class="btn" href="/Braize/shop/">Prize Shop</a>
-      <a class="btn" href="#how-it-works">See How It Works</a>
+    <div class="hero-orbit" aria-hidden="true">
+      <span class="hero-chip chip-red">EXT</span>
+      <span class="hero-chip chip-blue">TAB</span>
+      <span class="hero-chip chip-green">AI?</span>
+      <span class="hero-spark spark-one"></span>
+      <span class="hero-spark spark-two"></span>
+      <span class="hero-spark spark-three"></span>
+    </div>
+    <div class="hero-copy">
+      <p class="hero-kicker">Hack Club presents</p>
+      <h1 id="hero-heading">Ship browser chaos.</h1>
+      <p class="hero-sub">
+        Build a browser, an extension, a browsing buddy, or whatever "browsing"
+        means to you. Ship it publicly. Get rewarded for real.
+      </p>
+      <div class="hero-stats" aria-label="Braize summary">
+        <span><strong>YSWS</strong> format</span>
+        <span><strong>Loose</strong> theme</span>
+        <span><strong>Real</strong> prizes</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn btn-accent hero-primary" href="/Braize/dashboard/">Open Dashboard</a>
+        <a class="btn" href="/Braize/explore/">Explore Projects</a>
+        <a class="btn" href="/Braize/shop/">Prize Shop</a>
+        <a class="btn" href="#how-it-works">See How It Works</a>
+      </div>
     </div>
   </div>
 
@@ -185,13 +200,19 @@ const tabs = [
   }
 
   .hero-body {
+    min-height: 480px;
+    display: grid;
+    place-items: center;
     text-align: center;
-    padding: 58px 20px 44px;
+    padding: 72px 24px 56px;
     position: relative;
     overflow: hidden;
     background:
-      radial-gradient(circle at 50% 0, rgba(255,255,255,0.8), transparent 26%),
-      linear-gradient(135deg, rgba(236, 55, 80, 0.18), rgba(91, 192, 222, 0.22)),
+      repeating-conic-gradient(from 45deg at 50% 45%, rgba(255,255,255,0.3) 0 8deg, transparent 8deg 16deg),
+      radial-gradient(circle at 50% 42%, rgba(241,196,15,0.9), rgba(255,140,55,0.32) 18%, transparent 34%),
+      radial-gradient(circle at 12% 18%, rgba(91,192,222,0.55), transparent 24%),
+      radial-gradient(circle at 88% 82%, rgba(166,51,214,0.5), transparent 26%),
+      linear-gradient(135deg, rgba(236, 55, 80, 0.28), rgba(51, 214, 166, 0.18)),
       var(--win-face);
   }
 
@@ -203,23 +224,84 @@ const tabs = [
     pointer-events: none;
   }
 
+  .hero-body::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(0,0,0,0.09) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,0,0,0.09) 1px, transparent 1px);
+    background-size: 24px 24px;
+    mask-image: radial-gradient(circle at 50% 44%, black 0 52%, transparent 78%);
+  }
+
+  .hero-copy {
+    position: relative;
+    z-index: 2;
+    max-width: 760px;
+  }
+
+  .hero-kicker {
+    display: inline-block;
+    margin: 0 0 10px;
+    padding: 5px 12px;
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    color: var(--hc-yellow);
+    background: #050505;
+    box-shadow: 5px 5px 0 var(--hc-red), -5px -5px 0 var(--hc-cyan);
+    transform: rotate(-1deg);
+  }
+
   .hero-body h1 {
-    font-size: clamp(3.4rem, 11vw, 7.4rem);
+    margin-bottom: 0.16em;
+    font-size: clamp(4rem, 14vw, 9.3rem);
     color: #fff;
+    transform: rotate(-1.4deg);
     text-shadow:
       4px 4px 0 var(--hc-red),
       8px 8px 0 var(--hc-blue),
-      12px 12px 0 rgba(0,0,0,0.28),
-      0 0 24px rgba(255,255,255,0.5);
+      12px 12px 0 var(--hc-purple),
+      16px 16px 0 rgba(0,0,0,0.34),
+      0 0 34px rgba(255,255,255,0.7);
   }
 
   .hero-sub {
     max-width: 680px;
-    margin: 0 auto 20px;
+    margin: 0 auto 18px;
     font-weight: bold;
-    background: rgba(255,255,255,0.7);
-    padding: 10px 12px;
-    box-shadow: inset 1px 1px var(--win-light-highlight), inset -1px -1px var(--win-shadow);
+    color: #060606;
+    background: rgba(255,255,255,0.88);
+    padding: 12px 14px;
+    box-shadow:
+      inset 1px 1px var(--win-light-highlight),
+      inset -1px -1px var(--win-shadow),
+      8px 8px 0 rgba(0,0,0,0.18);
+  }
+
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 22px;
+  }
+
+  .hero-stats span {
+    padding: 7px 10px;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    color: #fff;
+    background: #050505;
+    box-shadow:
+      inset -1px -1px rgba(255,255,255,0.1),
+      inset 1px 1px rgba(0,0,0,0.7),
+      4px 4px 0 rgba(0,0,0,0.24);
+  }
+
+  .hero-stats strong {
+    color: var(--hc-green);
   }
 
   .hero-actions {
@@ -227,5 +309,103 @@ const tabs = [
     gap: 12px;
     justify-content: center;
     flex-wrap: wrap;
+  }
+
+  .hero-primary {
+    background: var(--hc-yellow);
+    transform: scale(1.08) rotate(-1deg);
+    box-shadow:
+      inset -1px -1px var(--win-dark-shadow),
+      inset 1px 1px var(--win-light-highlight),
+      inset -2px -2px var(--win-shadow),
+      inset 2px 2px var(--win-highlight),
+      0 0 0 4px rgba(255,255,255,0.65),
+      8px 8px 0 rgba(0,0,0,0.28);
+  }
+
+  .hero-orbit {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .hero-chip,
+  .hero-spark {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: normal;
+    color: #fff;
+    background: #050505;
+    box-shadow:
+      inset -1px -1px rgba(255,255,255,0.14),
+      inset 1px 1px rgba(0,0,0,0.8),
+      7px 7px 0 rgba(0,0,0,0.25);
+  }
+
+  .hero-chip {
+    width: 64px;
+    height: 46px;
+    animation: float-chip 5s ease-in-out infinite;
+  }
+
+  .chip-red { top: 58px; left: 9%; color: var(--hc-red); transform: rotate(-9deg); }
+  .chip-blue { top: 72px; right: 9%; color: var(--hc-cyan); transform: rotate(8deg); animation-delay: -1.5s; }
+  .chip-green { right: 14%; bottom: 66px; color: var(--hc-green); transform: rotate(-5deg); animation-delay: -3s; }
+
+  .hero-spark {
+    width: 22px;
+    height: 22px;
+    color: var(--hc-yellow);
+    background: currentColor;
+    clip-path: polygon(50% 0, 62% 35%, 100% 50%, 62% 65%, 50% 100%, 38% 65%, 0 50%, 38% 35%);
+    animation: spark-blink 1.4s steps(1) infinite;
+  }
+
+  .spark-one { left: 20%; bottom: 84px; }
+  .spark-two { right: 24%; top: 140px; animation-delay: 0.4s; }
+  .spark-three { left: 48%; top: 54px; animation-delay: 0.8s; }
+
+  @keyframes float-chip {
+    0%, 100% { translate: 0 0; }
+    50% { translate: 0 -12px; }
+  }
+
+  @keyframes spark-blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0.25; }
+  }
+
+  @media (max-width: 720px) {
+    .hero-body {
+      min-height: 430px;
+      padding: 56px 14px 42px;
+    }
+
+    .hero-chip {
+      width: 48px;
+      height: 34px;
+      font-size: 1rem;
+    }
+
+    .chip-red { left: 3%; top: 38px; }
+    .chip-blue { right: 4%; top: 46px; }
+    .chip-green { display: none; }
+
+    .hero-body h1 {
+      font-size: clamp(3.2rem, 18vw, 5.6rem);
+      text-shadow:
+        3px 3px 0 var(--hc-red),
+        6px 6px 0 var(--hc-blue),
+        9px 9px 0 rgba(0,0,0,0.34),
+        0 0 24px rgba(255,255,255,0.7);
+    }
+
+    .hero-primary {
+      transform: none;
+    }
   }
 </style>
