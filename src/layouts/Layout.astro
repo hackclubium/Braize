@@ -43,11 +43,6 @@ const iconSvgs = {
     <!-- particle field -->
     <div class="particle-field" id="particle-field" aria-hidden="true"></div>
     <div class="ambient-beams" aria-hidden="true"><span></span><span></span><span></span></div>
-    <div class="crt-hud" aria-hidden="true">
-      <span>BRAIZE_OS</span>
-      <span>CHAOS: 100%</span>
-      <span>SHIP MODE</span>
-    </div>
 
     <!-- floating desktop icons -->
     <nav class="desktop-icons" aria-label="Quick jump">
@@ -164,13 +159,28 @@ const iconSvgs = {
       });
 
       // splash auto-hide
-      window.addEventListener('load', () => {
+      (function () {
         const splash = document.getElementById('splash');
-        if (splash) {
+        if (!splash) return;
+        const key = 'braizeSplashViews';
+        try {
+          const now = Date.now();
+          const hour = 60 * 60 * 1000;
+          const stored = JSON.parse(localStorage.getItem(key) || '[]');
+          const views = Array.isArray(stored) ? stored.filter((time) => now - time < hour) : [];
+          if (views.length >= 3) {
+            splash.remove();
+            return;
+          }
+          localStorage.setItem(key, JSON.stringify([...views, now]));
+        } catch {
+          // Storage blocked: show splash normally instead of breaking page boot.
+        }
+        window.addEventListener('load', () => {
           setTimeout(() => splash.classList.add('hide'), 1200);
           setTimeout(() => splash.remove(), 1800);
-        }
-      });
+        });
+      })();
     </script>
   </body>
 </html>

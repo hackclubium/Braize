@@ -177,28 +177,6 @@ body::after {
 .ambient-beams span:nth-child(2) { left: 44%; color: var(--hc-red); animation-delay: -3s; }
 .ambient-beams span:nth-child(3) { right: 4%; color: var(--hc-yellow); animation-delay: -6s; }
 
-.crt-hud {
-  position: fixed;
-  left: 12px;
-  right: 12px;
-  bottom: 10px;
-  z-index: 90;
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  pointer-events: none;
-  font-family: var(--font-display);
-  font-size: 0.95rem;
-  color: var(--hc-green);
-  text-shadow: 0 0 8px var(--hc-green), 1px 1px 0 #000;
-}
-
-.crt-hud span {
-  padding: 2px 7px;
-  background: rgba(0,0,0,0.55);
-  box-shadow: inset 1px 1px rgba(255,255,255,0.08), inset -1px -1px rgba(0,0,0,0.8);
-}
-
 .cursor-spark {
   position: fixed;
   z-index: 10000;
@@ -1273,9 +1251,6 @@ a {
     display: none;
   }
 
-  .crt-hud {
-    display: none;
-  }
 }
 
 /* ---------------------------------------------------------------
