@@ -42,6 +42,12 @@ const iconSvgs = {
   <body>
     <!-- particle field -->
     <div class="particle-field" id="particle-field" aria-hidden="true"></div>
+    <div class="ambient-beams" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="crt-hud" aria-hidden="true">
+      <span>BRAIZE_OS</span>
+      <span>CHAOS: 100%</span>
+      <span>SHIP MODE</span>
+    </div>
 
     <!-- floating desktop icons -->
     <nav class="desktop-icons" aria-label="Quick jump">
@@ -58,12 +64,18 @@ const iconSvgs = {
       <div class="splash-stars" aria-hidden="true">
         <span></span><span></span><span></span><span></span><span></span><span></span>
       </div>
+      <div class="splash-rings" aria-hidden="true"><span></span><span></span><span></span></div>
       <div class="splash-inner">
         <div class="splash-badge">BOOT SEQUENCE</div>
         <h1>Braize</h1>
         <div class="splash-window bevel-out">
           <div class="splash-title">BRAIZE.EXE</div>
           <div class="splash-meter"><span></span></div>
+          <div class="splash-log" aria-hidden="true">
+            <span>loading extensions...</span>
+            <span>patching tabs...</span>
+            <span>shipping prizes...</span>
+          </div>
           <p class="tagline">arming browser chaos...</p>
         </div>
       </div>
@@ -98,6 +110,25 @@ const iconSvgs = {
           p.style.background = colors[Math.floor(Math.random() * colors.length)];
           container.appendChild(p);
         }
+      })();
+
+      // pointer sparks
+      (function () {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        let last = 0;
+        document.addEventListener('pointermove', (event) => {
+          const now = performance.now();
+          if (now - last < 70) return;
+          last = now;
+          const spark = document.createElement('span');
+          spark.className = 'cursor-spark';
+          spark.style.left = event.clientX + 'px';
+          spark.style.top = event.clientY + 'px';
+          spark.style.setProperty('--spark-x', (Math.random() * 40 - 20) + 'px');
+          spark.style.setProperty('--spark-y', (Math.random() * -34 - 8) + 'px');
+          document.body.appendChild(spark);
+          setTimeout(() => spark.remove(), 650);
+        }, { passive: true });
       })();
 
       // BSOD easter egg: triple-click anywhere on desktop (not on windows)
