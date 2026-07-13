@@ -551,7 +551,7 @@ a {
 
 .tab-strip a:hover {
   background: var(--win-face);
-  cursor: wait;
+  cursor: pointer;
 }
 
 .tab-strip a.active {
@@ -647,7 +647,7 @@ a {
     inset 1px 1px var(--win-light-highlight),
     inset -2px -2px var(--win-shadow),
     inset 2px 2px var(--win-highlight);
-  cursor: wait;
+  cursor: pointer;
 }
 
 .btn:active {
@@ -787,7 +787,7 @@ a {
 
 .faq-item summary {
   padding: 10px 12px;
-  cursor: wait;
+  cursor: pointer;
   font-weight: bold;
   list-style: none;
 }
