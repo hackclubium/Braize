@@ -76,7 +76,7 @@ const tabs = [
     <aside class="hero-desk" aria-label="Braize notes">
       <div class="mini-window mini-channel">
         <div class="mini-title">#braize</div>
-        <strong>28 people poking at the web</strong>
+        <strong><span id="braize-channel-count">a bunch of</span> people poking at the web</strong>
         <span>ask ideas, get unstuck, show ugly demos</span>
       </div>
       <div class="sticky-card mini-why">
@@ -111,6 +111,8 @@ const tabs = [
   ];
 
   const el = document.getElementById('typed-text');
+  const WORKER_URL = 'https://braize-worker.braize.workers.dev';
+  const channelCount = document.getElementById('braize-channel-count');
 
   if (el) {
     let phraseIndex = 0;
@@ -141,6 +143,16 @@ const tabs = [
     };
 
     tick();
+  }
+
+  if (channelCount) {
+    fetch(`${WORKER_URL}/public/stats`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((body) => {
+        const count = body?.stats?.braizeChannelMembers;
+        if (typeof count === 'number') channelCount.textContent = `${count}`;
+      })
+      .catch(() => {});
   }
 
   const closeBtn = document.getElementById('close-btn');

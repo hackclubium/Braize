@@ -3,6 +3,9 @@ const HACKCLUB_ME_URL = 'https://auth.hackclub.com/api/v1/me';
 const HACKATIME_TOKEN_URL = 'https://hackatime.hackclub.com/oauth/token';
 const HACKATIME_ME_URL = 'https://hackatime.hackclub.com/api/v1/authenticated/me';
 const HACKATIME_PROJECTS_URL = 'https://hackatime.hackclub.com/api/v1/authenticated/projects';
+const SLACK_CONVERSATIONS_INFO_URL = 'https://slack.com/api/conversations.info';
+const BRAIZE_STATS_CACHE_KEY = 'braize_stats';
+const BRAIZE_STATS_TTL_MS = 55 * 60 * 1000;
 
 function corsHeaders(env) {
   return {
@@ -214,6 +217,56 @@ async function handleListPublicProjects(env) {
   ).all();
 
   return json({ projects: results }, 200, env);
+}
+
+async function readBraizeStats(env) {
+  const row = await env.DB.prepare(`SELECT value, updated_at FROM app_cache WHERE key = ?1`)
+    .bind(BRAIZE_STATS_CACHE_KEY)
+    .first();
+  if (!row) return null;
+
+  try {
+    return { ...JSON.parse(row.value), updatedAt: row.updated_at };
+  } catch {
+    return null;
+  }
+}
+
+async function writeBraizeStats(env, stats) {
+  await env.DB.prepare(
+    `INSERT INTO app_cache (key, value, updated_at)
+     VALUES (?1, ?2, datetime('now'))
+     ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`
+  )
+    .bind(BRAIZE_STATS_CACHE_KEY, JSON.stringify(stats))
+    .run();
+}
+
+async function refreshBraizeStats(env) {
+  if (!env.SLACK_BOT_TOKEN || !env.SLACK_BRAIZE_CHANNEL_ID) return readBraizeStats(env);
+
+  const params = new URLSearchParams({ channel: env.SLACK_BRAIZE_CHANNEL_ID, include_num_members: 'true' });
+  const res = await fetch(`${SLACK_CONVERSATIONS_INFO_URL}?${params.toString()}`, {
+    headers: { Authorization: `Bearer ${env.SLACK_BOT_TOKEN}` },
+  });
+  if (!res.ok) return readBraizeStats(env);
+
+  const body = await res.json();
+  if (!body.ok || typeof body.channel?.num_members !== 'number') return readBraizeStats(env);
+
+  const stats = { braizeChannelMembers: body.channel.num_members };
+  await writeBraizeStats(env, stats);
+  return readBraizeStats(env);
+}
+
+async function handlePublicStats(env) {
+  const stats = await readBraizeStats(env);
+  const updatedAt = stats?.updatedAt ? Date.parse(`${stats.updatedAt}Z`) : 0;
+  if (!stats || Date.now() - updatedAt > BRAIZE_STATS_TTL_MS) {
+    const freshStats = await refreshBraizeStats(env);
+    return json({ stats: freshStats ?? { braizeChannelMembers: null, updatedAt: null } }, 200, env);
+  }
+  return json({ stats }, 200, env);
 }
 
 async function handleCreateProject(request, user, env) {
@@ -470,6 +523,10 @@ export default {
       return handleListPublicProjects(env);
     }
 
+    if (pathname === '/public/stats' && request.method === 'GET') {
+      return handlePublicStats(env);
+    }
+
     let match = pathname.match(/^\/public\/projects\/([^/]+)$/);
     if (match && request.method === 'GET') {
       return handlePublicProject(env, projectIdFromSlug(match[1]));
@@ -542,5 +599,9 @@ export default {
     }
 
     return json({ error: 'not found' }, 404, env);
+  },
+
+  async scheduled(_event, env, ctx) {
+    ctx.waitUntil(refreshBraizeStats(env));
   },
 };

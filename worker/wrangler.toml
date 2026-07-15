@@ -11,10 +11,15 @@ HACKATIME_OAUTH_REDIRECT_URI = "https://hackclubium.github.io/Braize/"
 ALLOWED_ORIGIN = "https://hackclubium.github.io"
 # Set this to the bucket's public r2.dev URL or custom domain, without trailing slash.
 PUBLIC_UPLOAD_BASE_URL = "https://pub-f3d415aa090d4cfb9c594a5e9ba99f1f.r2.dev"
+SLACK_BRAIZE_CHANNEL_ID = "C0BF9UFNEDS"
 
 # These are set separately as secrets, never in this file:
 #   wrangler secret put HACKCLUB_AUTH_CLIENT_SECRET
 #   wrangler secret put HACKATIME_OAUTH_CLIENT_SECRET
+#   wrangler secret put SLACK_BOT_TOKEN
+
+[triggers]
+crons = ["0 * * * *"]
 
 # Created with `wrangler d1 create braize-db`, then paste the printed
 # database_id below. Apply schema with:
