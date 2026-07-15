@@ -87,8 +87,12 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 <style is:global>
   .orders-note {
     margin: 0 0 14px;
-    font-size: 0.9rem;
-    opacity: 0.85;
+    padding: 12px 14px;
+    font-family: var(--font-hand);
+    font-size: 1.15rem;
+    background: #fff4a8;
+    box-shadow: 5px 5px 0 rgba(0,0,0,0.12);
+    transform: rotate(-0.4deg);
   }
 
   .orders-list {
@@ -102,9 +106,14 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     align-items: center;
     gap: 10px;
     padding: 12px;
-    background: #fff;
-    box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-light-highlight);
+    background:
+      repeating-linear-gradient(#fff 0 24px, #d9ecff 24px 25px),
+      #fff;
+    box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-light-highlight), 5px 5px 0 rgba(0,0,0,0.12);
+    transform: rotate(-0.25deg);
   }
+
+  .order-card:nth-child(2n) { transform: rotate(0.25deg); }
 
   .order-pill {
     margin-left: auto;

@@ -124,7 +124,10 @@ import TopNav from '../components/TopNav.astro';
     gap: 16px;
     align-items: flex-start;
     padding: 18px;
-    background: #050505;
+    background:
+      linear-gradient(90deg, rgba(255,255,255,0.08) 0 1px, transparent 1px 100%),
+      #050505;
+    background-size: 18px 18px, auto;
     color: #fff;
     box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.25);
   }
@@ -161,8 +164,9 @@ import TopNav from '../components/TopNav.astro';
 
   .public-description {
     padding: 16px;
-    background: #fff;
-    box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-dark-shadow);
+    background: #fff4a8;
+    box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-dark-shadow), 5px 5px 0 rgba(0,0,0,0.12);
+    transform: rotate(-0.35deg);
   }
 
   .public-actions {
@@ -200,7 +204,10 @@ import TopNav from '../components/TopNav.astro';
     color: #111;
     font-weight: bold;
     box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2);
+    transform: rotate(-1deg);
   }
+
+  .public-meta span:nth-child(2n) { transform: rotate(1deg); }
 
   .public-meta .shipped-pill {
     background: var(--hc-green);
@@ -216,9 +223,13 @@ import TopNav from '../components/TopNav.astro';
     padding: 14px;
     background:
       linear-gradient(90deg, var(--hc-cyan) 0 5px, transparent 5px),
+      repeating-linear-gradient(#fff 0 24px, #d9ecff 24px 25px),
       #fff;
     box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-dark-shadow), 5px 5px 0 rgba(0, 0, 0, 0.18);
+    transform: rotate(-0.25deg);
   }
+
+  .public-entry:nth-child(2n) { transform: rotate(0.25deg); }
 
   .public-entry::after {
     content: 'LOG';

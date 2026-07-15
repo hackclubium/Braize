@@ -106,10 +106,13 @@ const items = [
     padding: 16px;
     min-height: 250px;
     background:
-      radial-gradient(circle at 50% 18%, rgba(255,255,255,0.9), transparent 22%),
+      radial-gradient(circle at 24px 20px, var(--hc-red) 0 5px, transparent 6px),
       linear-gradient(180deg, #fff, #ffe9a8);
     box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-light-highlight), 8px 8px 0 rgba(0, 0, 0, 0.2);
+    transform: rotate(-0.45deg);
   }
+
+  .shop-card:nth-child(2n) { transform: rotate(0.45deg); background-color: #e9fbff; }
 
   .shop-card:hover {
     transform: translateY(-4px) rotate(-0.5deg);

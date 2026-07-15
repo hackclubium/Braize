@@ -313,8 +313,11 @@ import TopNav from '../../components/TopNav.astro';
     gap: 10px;
     margin-top: 18px;
     padding: 14px;
-    background: linear-gradient(180deg, #fff, #f7fbff);
-    box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-dark-shadow);
+    background:
+      repeating-linear-gradient(#fff 0 24px, #d9ecff 24px 25px),
+      #fff;
+    box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-dark-shadow), 5px 5px 0 rgba(0,0,0,0.12);
+    transform: rotate(-0.2deg);
   }
 
   .workshop-tabs {
@@ -351,8 +354,8 @@ import TopNav from '../../components/TopNav.astro';
   .danger-zone {
     margin-top: 18px;
     padding: 14px;
-    background: #fff;
-    box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-dark-shadow);
+    background: #ffd7df;
+    box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-dark-shadow), 5px 5px 0 rgba(0,0,0,0.12);
   }
 
   .manage-form label {
@@ -384,9 +387,15 @@ import TopNav from '../../components/TopNav.astro';
 
   .manage-entry {
     padding: 14px;
-    background: linear-gradient(90deg, var(--hc-yellow) 0 5px, #fff 5px);
+    background:
+      linear-gradient(90deg, var(--hc-yellow) 0 5px, transparent 5px),
+      repeating-linear-gradient(#fff 0 24px, #d9ecff 24px 25px),
+      #fff;
     box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-light-highlight), 5px 5px 0 rgba(0, 0, 0, 0.18);
+    transform: rotate(-0.2deg);
   }
+
+  .manage-entry:nth-child(2n) { transform: rotate(0.2deg); }
 
   .manage-entry-head {
     display: flex;
