@@ -48,11 +48,6 @@ const tabs = [
   </div>
 
   <div class="window-body hero-body">
-    <div class="hero-scraps" aria-hidden="true">
-      <span class="scrap scrap-one">browser?</span>
-      <span class="scrap scrap-two">extension</span>
-      <span class="scrap scrap-three">weird tab thing</span>
-    </div>
     <div class="hero-copy">
       <p class="hero-kicker">a Hack Club YSWS</p>
       <h1 id="hero-heading">make a thing for the web</h1>
@@ -353,27 +348,6 @@ const tabs = [
       6px 6px 0 rgba(0,0,0,0.22);
   }
 
-  .hero-scraps {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 1;
-  }
-
-  .scrap {
-    position: absolute;
-    padding: 9px 12px;
-    font-family: var(--font-hand);
-    font-size: 1.15rem;
-    color: #111;
-    background: #fff;
-    box-shadow: 4px 4px 0 rgba(0,0,0,0.16);
-  }
-
-  .scrap-one { top: 42px; left: 46%; transform: rotate(6deg); background: #ffd7df; }
-  .scrap-two { top: 152px; left: 52%; transform: rotate(-4deg); background: #d8f4ff; }
-  .scrap-three { left: 8%; bottom: 34px; transform: rotate(3deg); background: #e6ffd8; }
-
   .hero-desk {
     position: relative;
     z-index: 2;
@@ -472,8 +446,6 @@ const tabs = [
       min-height: auto;
       padding: 44px 14px 34px;
     }
-
-    .hero-scraps { display: none; }
 
     .hero-desk {
       grid-template-columns: 1fr;
