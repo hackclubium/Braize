@@ -7,30 +7,30 @@ const items = [
     name: 'Browser Sticker Pack',
     cost: '1 ship',
     tag: 'starter',
-    desc: 'A tiny pile of browser-themed vinyl stickers for laptops, notebooks, and questionable hardware.',
+    desc: 'A little sticker pile for anything that runs and fits the theme.',
   },
   {
     name: 'Braize Mouse',
     cost: 'solid ship',
     tag: 'gear',
-    desc: 'Wireless mouse reward for projects that run, feel complete, and survive review clicks.',
+    desc: 'For projects that feel useful, not just technically alive.',
   },
   {
     name: 'Domain + Hosting',
-    cost: 'standout ship',
+    cost: 'complete ship',
     tag: 'web',
-    desc: 'A public home for the thing you built: domain credit plus hosting for a year.',
+    desc: 'A public home for the thing you built: domain plus hosting for a year.',
   },
   {
     name: 'Portable Monitor',
-    cost: 'exceptional ship',
+    cost: 'wild ship',
     tag: 'boss tier',
-    desc: 'Extra screen space for from-scratch browsers, ambitious engines, or projects with serious polish.',
+    desc: 'For from-scratch browsers, ambitious engines, or similarly serious work.',
   },
 ];
 ---
 
-<Layout title="Shop - Braize" description="Browse Braize reward placeholders.">
+<Layout title="Shop - Braize" description="Braize prize tiers.">
   <main class="page shop-page">
     <TopNav active="shop" />
 
@@ -40,9 +40,9 @@ const items = [
       </div>
       <div class="shop-body">
         <header class="shop-hero">
-          <p class="eyebrow">REWARD CATALOG</p>
-          <h1>Prize Shop</h1>
-          <p>Placeholder rewards while review rules settle. Nothing buys with money; projects earn rewards by shipping.</p>
+          <p class="eyebrow">PRIZE TIERS</p>
+          <h1>Prizes</h1>
+          <p>No checkout. No points. Ship a project, get reviewed, then eligible rewards show up.</p>
         </header>
 
         <div class="shop-grid">
@@ -52,7 +52,7 @@ const items = [
               <h2>{item.name}</h2>
               <p>{item.desc}</p>
               <div class="shop-cost">{item.cost}</div>
-              <button type="button" class="btn-mini" disabled>Not Claimable Yet</button>
+              <button type="button" class="btn-mini" disabled>Review decides</button>
             </article>
           ))}
         </div>

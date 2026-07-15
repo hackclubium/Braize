@@ -13,13 +13,13 @@ import TopNav from '../components/TopNav.astro';
       </div>
       <div class="explore-body">
         <header class="explore-hero">
-          <p class="eyebrow">PUBLIC PROJECT INDEX</p>
-          <h1>Explore Builds</h1>
-          <p>Browse what everyone is shipping. Open any project to read its full journal.</p>
+          <p class="eyebrow">PUBLIC PROJECTS</p>
+          <h1>Stuff people made</h1>
+          <p>Browse projects, read notes, steal ideas kindly.</p>
         </header>
 
         <div class="explore-toolbar">
-          <input id="project-search" type="search" placeholder="Search projects or makers" />
+          <input id="project-search" type="search" placeholder="Search projects or people" />
           <select id="project-category">
             <option value="">All</option>
             <option value="browser">Browsers</option>
@@ -68,7 +68,7 @@ import TopNav from '../components/TopNav.astro';
   function renderProjects(list) {
     count.textContent = `${list.length} ${list.length === 1 ? 'project' : 'projects'}`;
     if (!list.length) {
-      grid.innerHTML = '<div class="journal-empty">No projects found.</div>';
+      grid.innerHTML = '<div class="journal-empty">Nothing matches that.</div>';
       return;
     }
 

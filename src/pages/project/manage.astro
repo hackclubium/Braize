@@ -109,9 +109,9 @@ import TopNav from '../../components/TopNav.astro';
       root.innerHTML = `
         <header class="manage-hero">
           <div>
-            <p class="eyebrow">PRIVATE WORKSHOP</p>
+            <p class="eyebrow">PROJECT WORKSHOP</p>
             <h1>${escapeHtml(project.name)}</h1>
-            <p>Customize project details, Hackatime link, and journal proof here.</p>
+            <p>Edit details, link Hackatime, write notes.</p>
           </div>
           <div class="manage-actions">
             <a class="btn" href="${PUBLIC_PROJECT_BASE}?p=${project.id}-${String(project.name || 'project').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'project'}" target="_blank" rel="noopener">Public View</a>
@@ -146,8 +146,8 @@ import TopNav from '../../components/TopNav.astro';
         <section class="manage-journal-box workshop-panel" data-workshop-panel="journal" hidden>
           <h2>Journal</h2>
           <form class="manage-form" id="journal-form">
-            <input name="title" placeholder="Entry title (optional)" maxlength="100">
-            <textarea name="body" placeholder="What changed? Markdown supported." rows="7" required></textarea>
+            <input name="title" placeholder="Title (optional)" maxlength="100">
+            <textarea name="body" placeholder="What changed? Markdown works." rows="7" required></textarea>
             <div class="manage-tools">
               <label class="btn-mini image-upload-btn">
                 <span>+ Image</span>

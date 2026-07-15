@@ -20,7 +20,7 @@ import TopNav from '../components/TopNav.astro';
       <section class="dash-hero window">
         <div class="title-bar" style="--title-color: var(--hc-purple); --title-color-2: var(--hc-blue);">
           <div class="title-bar-text">
-            <PixelIcon name="monitor" color="#fff" /> Braize Command Center
+             <PixelIcon name="monitor" color="#fff" /> Braize Project Desk
           </div>
           <div class="title-bar-controls" aria-hidden="true">
             <button type="button">&#95;</button>
@@ -30,14 +30,14 @@ import TopNav from '../components/TopNav.astro';
         </div>
         <div class="dash-hero-body">
           <div>
-            <p class="eyebrow">PROJECT OPS / HACKATIME SYNC / JOURNAL LOG</p>
+            <p class="eyebrow">PROJECTS / HOURS / NOTES</p>
             <h1>Dashboard</h1>
-            <p class="hero-copy">Track builds, link real coding hours, and keep ship notes in one tiny retro control room.</p>
+            <p class="hero-copy">Keep projects, coding hours, and messy proof in one place.</p>
           </div>
           <div class="hero-terminal" aria-label="Dashboard status terminal">
-            <span>C:\BRAIZE&gt; scan projects</span>
+            <span>C:\BRAIZE&gt; list projects</span>
             <span>hackatime: ready</span>
-            <span>journal: armed</span>
+            <span>notes: waiting</span>
             <span class="terminal-cursor">_</span>
           </div>
         </div>
@@ -62,7 +62,7 @@ import TopNav from '../components/TopNav.astro';
         </div>
         <div class="stat">
           <PixelIcon name="gift" color="var(--hc-purple)" />
-          <div class="stat-num" id="stat-status">—</div>
+          <div class="stat-num" id="stat-status">-</div>
           <div class="stat-label">Status</div>
         </div>
       </div>
@@ -82,7 +82,7 @@ import TopNav from '../components/TopNav.astro';
         <div class="project-toolbar">
           <div>
             <h2>Build Queue</h2>
-            <p>Each folder is one browser project. Link Hackatime once, then hours stay live.</p>
+            <p>Each folder is one project. Link Hackatime once; hours stay live.</p>
           </div>
           <button type="button" class="btn btn-accent add-project-toggle action-launch" id="add-project-toggle">
             <span id="add-project-toggle-label">+ New Project</span>
@@ -100,7 +100,7 @@ import TopNav from '../components/TopNav.astro';
             <option value="buddy">Buddy</option>
             <option value="weird">Weird</option>
           </select>
-          <textarea name="description" placeholder="Description (optional)" rows="2"></textarea>
+          <textarea name="description" placeholder="What is this thing? (optional)" rows="2"></textarea>
           <div class="form-actions">
             <button type="submit" class="btn btn-accent">Create</button>
             <button type="button" class="btn" id="cancel-add-project">Cancel</button>
@@ -223,7 +223,7 @@ import TopNav from '../components/TopNav.astro';
     // preserve current if it isn't in the list (could be a legacy/renamed entry)
     const knownNames = new Set(projects.map((p) => p.name));
     const opts = [];
-    opts.push(`<option value="">— not linked —</option>`);
+    opts.push(`<option value="">- not linked -</option>`);
     if (htLastError) {
       opts.push(`<option value="" disabled>Hackatime unavailable (${escapeHtml(htLastError)})</option>`);
     }
@@ -232,7 +232,7 @@ import TopNav from '../components/TopNav.astro';
     }
     for (const p of projects) {
       const hrs = (p.totalSeconds / 3600).toFixed(1);
-      opts.push(`<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)} — ${hrs}h</option>`);
+      opts.push(`<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)} - ${hrs}h</option>`);
     }
     select.innerHTML = opts.join('');
     select.value = current;
@@ -317,7 +317,7 @@ import TopNav from '../components/TopNav.astro';
     const totalEntries = projects.reduce((s, p) => s + (p.journal_count || 0), 0);
     document.getElementById('stat-entries').textContent = totalEntries;
     const statuses = [...new Set(projects.map((p) => p.status).filter(Boolean))];
-    document.getElementById('stat-status').textContent = statuses[0] ?? '—';
+    document.getElementById('stat-status').textContent = statuses[0] ?? '-';
   }
 
   async function loadProjects() {
@@ -356,7 +356,7 @@ import TopNav from '../components/TopNav.astro';
           </svg>
         </div>
         <h3>No projects yet</h3>
-        <p>Click <strong>+ New Project</strong> above to add your first browser build.</p>
+        <p>Click <strong>+ New Project</strong> above to add your first build.</p>
       `;
       projectList.appendChild(empty);
       return;
@@ -388,7 +388,7 @@ import TopNav from '../components/TopNav.astro';
       <div class="project-body">
         <div class="project-summary">
           <div class="project-copy">
-            ${project.description ? `<p class="project-desc">${escapeHtml(project.description)}</p>` : '<p class="project-desc muted">No description yet. Add context before review day.</p>'}
+            ${project.description ? `<p class="project-desc">${escapeHtml(project.description)}</p>` : '<p class="project-desc muted">No description yet. Future you will want one.</p>'}
             ${project.repo_url ? `<p class="project-repo"><span>Repo</span><a href="${escapeHtml(project.repo_url)}" target="_blank" rel="noopener">${escapeHtml(project.repo_url)}</a></p>` : '<p class="project-repo muted"><span>Repo</span>not added</p>'}
             ${project.lapse_url ? `<p class="project-repo"><span>Lapse</span><a href="${escapeHtml(project.lapse_url)}" target="_blank" rel="noopener">${escapeHtml(project.lapse_url)}</a></p>` : '<p class="project-repo muted"><span>Lapse</span>not added</p>'}
           </div>
@@ -413,7 +413,7 @@ import TopNav from '../components/TopNav.astro';
           <div class="journal-header">
             <div>
               <h4>Preview</h4>
-              <span class="journal-kicker">latest devlog proof</span>
+              <span class="journal-kicker">latest notes</span>
             </div>
           </div>
           <div class="journal-entries journal-preview" id="journal-${project.id}">
@@ -448,7 +448,7 @@ import TopNav from '../components/TopNav.astro';
       const { entries } = await api(`/projects/${projectId}/journal`);
       container.innerHTML = '';
       if (entries.length === 0) {
-        container.innerHTML = '<div class="journal-empty">No entries yet. Ship something and tell the world.</div>';
+        container.innerHTML = '<div class="journal-empty">No entries yet. Write what changed.</div>';
         return;
       }
       entries.slice(0, 2).forEach((entry) => {
@@ -860,7 +860,7 @@ import TopNav from '../components/TopNav.astro';
     font-size: 0.9rem;
   }
 
-  /* Project card — folder tab style */
+  /* Project card: folder tab style */
   .project-card {
     position: relative;
     background: var(--win-face);

@@ -6,7 +6,7 @@ import Panel from '../components/Panel.astro';
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
-<Layout title="Orders - Braize" description="Track reward status for shipped Braize projects.">
+<Layout title="Orders - Braize" description="Track Braize reward review status.">
   <main class="page">
     <TopNav active="orders" />
 
@@ -20,11 +20,11 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     <div id="orders-body" style="display:none;">
       <Panel id="orders" title="Reward Status" icon="gift" color="var(--hc-purple)" color2="var(--hc-red)">
         <p class="orders-note">
-          This is a status view, not a claim flow — reward fulfillment isn't wired up yet.
-          Once a project ships it shows up here as pending review.
+          This is only a status view for now. Ship a project and it lands here
+          as pending review.
         </p>
         <div id="orders-list" class="orders-list">
-          <div class="loading">Loading shipped projects...</div>
+          <div class="loading">Checking shipped projects...</div>
         </div>
       </Panel>
     </div>
@@ -74,7 +74,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
           <article class="order-card">
             <strong>${escapeHtml(p.name)}</strong>
             <span>shipped ${renderDate(p.shipped_at)}</span>
-            <span class="order-pill">reward: pending review</span>
+            <span class="order-pill">pending review</span>
           </article>
         `).join('')
         : '<div class="journal-empty">Ship a project to see it here.</div>';
