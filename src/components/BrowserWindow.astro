@@ -67,6 +67,13 @@ const tabs = [
         <a class="btn" href="/Braize/shop/">See prizes</a>
         <a class="btn" href="#how-it-works">How it works</a>
       </div>
+      <div class="hero-prompt-row" aria-label="Project ideas">
+        <span>extension</span>
+        <span>tiny browser</span>
+        <span>tab tool</span>
+        <span>web pet</span>
+        <span>request x-ray</span>
+      </div>
     </div>
     <aside class="hero-desk" aria-label="Braize notes">
       <div class="mini-window mini-channel">
@@ -335,6 +342,34 @@ const tabs = [
     gap: 12px;
     justify-content: flex-start;
     flex-wrap: wrap;
+  }
+
+  .hero-prompt-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin-top: 26px;
+    max-width: 620px;
+  }
+
+  .hero-prompt-row span {
+    padding: 7px 10px;
+    font-family: var(--font-hand);
+    font-size: 1.18rem;
+    line-height: 1;
+    color: #111;
+    background: #fff;
+    box-shadow: 4px 4px 0 rgba(0,0,0,0.12);
+    transform: rotate(-1deg);
+  }
+
+  .hero-prompt-row span:nth-child(2n) {
+    background: #d8f4ff;
+    transform: rotate(1deg);
+  }
+
+  .hero-prompt-row span:nth-child(3n) {
+    background: #e6ffd8;
   }
 
   .hero-primary {
