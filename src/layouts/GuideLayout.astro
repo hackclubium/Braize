@@ -1,0 +1,57 @@
+---
+import Layout from './Layout.astro';
+import TopNav from '../components/TopNav.astro';
+
+const { frontmatter } = Astro.props;
+---
+
+<Layout title={`${frontmatter.title} - Braize Guides`} description={frontmatter.description ?? 'Braize guide.'}>
+  <main class="page guide-page">
+    <TopNav active="guides" crumb={frontmatter.title} />
+
+    <article class="window guide-doc">
+      <div class="title-bar" style="--title-color: var(--hc-yellow); --title-color-2: var(--hc-green);">
+        <div class="title-bar-text">{frontmatter.title}.md</div>
+      </div>
+      <div class="guide-doc-body">
+        <a class="btn-mini" href="/Braize/guides/">Back to guides</a>
+        <slot />
+      </div>
+    </article>
+  </main>
+</Layout>
+
+<style is:global>
+  .guide-page { padding-top: 24px; }
+  .guide-doc { margin-top: 14px; }
+  .guide-doc-body {
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(241, 196, 15, 0.18), rgba(51, 214, 166, 0.12)), var(--win-face);
+  }
+  .guide-doc-body > :not(.btn-mini) {
+    max-width: 72ch;
+  }
+  .guide-doc-body h1 {
+    margin: 18px 0 10px;
+    font-size: clamp(2.4rem, 7vw, 4.4rem);
+    line-height: 0.95;
+  }
+  .guide-doc-body h2 {
+    margin-top: 28px;
+  }
+  .guide-doc-body p,
+  .guide-doc-body li {
+    font-size: 1.05rem;
+  }
+  .guide-doc-body blockquote {
+    margin: 18px 0;
+    padding: 12px 14px;
+    background: #fff4a8;
+    box-shadow: 5px 5px 0 rgba(0,0,0,0.14);
+  }
+  .guide-doc-body code {
+    padding: 1px 4px;
+    background: #fff;
+    box-shadow: inset 1px 1px #777, inset -1px -1px #fff;
+  }
+</style>
