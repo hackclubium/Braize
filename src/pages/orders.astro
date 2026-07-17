@@ -2,124 +2,28 @@
 import Layout from '../layouts/Layout.astro';
 import TopNav from '../components/TopNav.astro';
 import Panel from '../components/Panel.astro';
-
-const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
-<Layout title="Orders - Braize" description="Track Braize reward review status.">
+<Layout title="Orders - Braize" description="Braize reward status is under construction.">
   <main class="page">
     <TopNav active="orders" />
 
-    <div id="signed-out-notice" class="signed-out" style="display:none;">
-      <Panel id="signed-out" title="Not Connected" icon="plug" color="var(--hc-red)" color2="var(--hc-orange)">
-        <p>You need to connect your Hack Club account before you can view orders.</p>
-        <a class="btn btn-accent" href={`${base}/`}>Go connect your account</a>
-      </Panel>
-    </div>
-
-    <div id="orders-body" style="display:none;">
-      <Panel id="orders" title="Reward Status" icon="gift" color="var(--hc-purple)" color2="var(--hc-red)">
-        <p class="orders-note">
-          This is only a status view for now. Ship a project and it lands here
-          as pending review.
-        </p>
-        <div id="orders-list" class="orders-list">
-          <div class="loading">Checking shipped projects...</div>
-        </div>
-      </Panel>
-    </div>
+    <Panel id="orders" title="Reward Status Under Construction" icon="gift" color="var(--hc-purple)" color2="var(--hc-red)">
+      <p class="construction-note">
+        Reward tracking will come after the Fillout-to-Airtable submission flow is ready.
+      </p>
+      <p>For now, submitted projects and reward review are not shown on this page.</p>
+      <a class="btn btn-accent" href="/Braize/shop/">See reward tiers</a>
+    </Panel>
   </main>
 </Layout>
 
-<script type="module">
-  const WORKER_URL = 'https://braize-worker.braize.workers.dev';
-
-  const account = JSON.parse(localStorage.getItem('braize_hc_account') || 'null');
-  const sessionToken = account?.sessionToken;
-
-  const signedOutNotice = document.getElementById('signed-out-notice');
-  const ordersBody = document.getElementById('orders-body');
-  const ordersList = document.getElementById('orders-list');
-
-  function escapeHtml(str) {
-    if (str == null) return '';
-    const div = document.createElement('div');
-    div.textContent = String(str);
-    return div.innerHTML;
-  }
-
-  function renderDate(value) {
-    const date = new Date(value + 'Z');
-    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-  }
-
-  if (!sessionToken) {
-    signedOutNotice.style.display = 'block';
-  } else {
-    ordersBody.style.display = 'block';
-    loadOrders();
-  }
-
-  async function loadOrders() {
-    try {
-      const res = await fetch(`${WORKER_URL}/projects`, {
-        headers: { Authorization: `Bearer ${sessionToken}` },
-      });
-      if (!res.ok) throw new Error(`request failed: ${res.status}`);
-      const { projects } = await res.json();
-      const shipped = projects.filter((p) => p.shipped_at);
-
-      ordersList.innerHTML = shipped.length
-        ? shipped.map((p) => `
-          <article class="order-card">
-            <strong>${escapeHtml(p.name)}</strong>
-            <span>shipped ${renderDate(p.shipped_at)}</span>
-            <span class="order-pill">pending review</span>
-          </article>
-        `).join('')
-        : '<div class="journal-empty">Ship a project to see it here.</div>';
-    } catch (err) {
-      ordersList.innerHTML = `<div class="error">Failed to load orders. ${escapeHtml(err.message)}</div>`;
-    }
-  }
-</script>
-
 <style is:global>
-  .orders-note {
-    margin: 0 0 14px;
-    padding: 12px 14px;
-    font-family: var(--font-hand);
-    font-size: 1.15rem;
+  .construction-note {
+    max-width: 58ch;
+    padding: 14px 16px;
     background: #fff4a8;
-    box-shadow: 5px 5px 0 rgba(0,0,0,0.12);
-    transform: rotate(-0.4deg);
-  }
-
-  .orders-list {
-    display: grid;
-    gap: 10px;
-  }
-
-  .order-card {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
-    padding: 12px;
-    background:
-      repeating-linear-gradient(#fff 0 24px, #d9ecff 24px 25px),
-      #fff;
-    box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-light-highlight), 5px 5px 0 rgba(0,0,0,0.12);
-    transform: rotate(-0.25deg);
-  }
-
-  .order-card:nth-child(2n) { transform: rotate(0.25deg); }
-
-  .order-pill {
-    margin-left: auto;
-    padding: 3px 8px;
-    font-family: var(--font-display);
-    background: #000;
-    color: var(--hc-yellow);
+    box-shadow: 5px 5px 0 rgba(0,0,0,0.14);
+    transform: rotate(-0.5deg);
   }
 </style>
