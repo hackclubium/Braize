@@ -1,31 +1,47 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import TopNav from '../components/TopNav.astro';
+import mouseImage from '../assets/mouse.jpg';
+import chromeImage from '../assets/chrome-web-store.webp';
+import browserImage from '../assets/browser.jpg';
+import keyboardImage from '../assets/keyboard.jpg';
+import monitorImage from '../assets/monitor.jpg';
 
 const items = [
   {
-    name: 'Browser Sticker Pack',
-    cost: '1 ship',
-    tag: 'starter',
-    desc: 'A little sticker pile for anything that runs and fits the theme.',
+    name: 'Chrome Extension License',
+    cost: '1 hour',
+    tag: 'extension',
+    image: chromeImage,
+    desc: 'make your own extension and launch it on the chrome web store :O',
   },
   {
-    name: 'Braize Mouse',
-    cost: 'solid ship',
+    name: 'Browser Subscription Grant',
+    cost: '5 hours',
+    tag: 'stackable',
+    image: browserImage,
+    desc: 'get those cool paid browsers! better features means a better web for you!',
+  },
+  {
+    name: 'Mouse',
+    cost: '10 hours',
     tag: 'gear',
-    desc: 'For projects that feel useful, not just technically alive.',
+    image: mouseImage,
+    desc: 'an amazing mouse for serious clicking! click away and dominate with those clicks!',
   },
   {
-    name: 'Domain + Hosting',
-    cost: 'complete ship',
-    tag: 'web',
-    desc: 'A public home for the thing you built: domain plus hosting for a year.',
+    name: 'Keyboard',
+    cost: '15 hours',
+    tag: 'gear',
+    image: keyboardImage,
+    desc: 'very cool keyboard! time to type faster than ever!',
   },
   {
-    name: 'Portable Monitor',
-    cost: 'wild ship',
+    name: 'Monitor',
+    cost: '50 hours',
     tag: 'boss tier',
-    desc: 'For from-scratch browsers, ambitious engines, or similarly serious work.',
+    image: monitorImage,
+    desc: 'cool, big monitor for all your browsing needs! more screens more tabs!',
   },
 ];
 ---
@@ -49,6 +65,7 @@ const items = [
           {items.map((item) => (
             <article class="shop-card">
               <div class="shop-tag">{item.tag}</div>
+              <img src={item.image.src} alt="" class="shop-image" loading="lazy" />
               <h2>{item.name}</h2>
               <p>{item.desc}</p>
               <div class="shop-cost">{item.cost}</div>
@@ -137,6 +154,14 @@ const items = [
 
   .shop-card h2 {
     margin: 10px 0 0;
+  }
+
+  .shop-image {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border: 3px solid #050505;
+    background: #fff;
   }
 
   .shop-card p {
