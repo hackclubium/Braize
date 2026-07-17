@@ -11,7 +11,7 @@ export const shopItems = [
     cost: '1 hour',
     tag: 'extension',
     image: chromeImage,
-    desc: 'make your own extension and launch it on the chrome web store :O',
+    desc: 'make your own extension and launch it on the chrome web store :O :chrome-unstable:',
     details: [
        'covers the cost of the chrome extension license',
     ],
@@ -22,7 +22,7 @@ export const shopItems = [
     cost: '5 hours',
     tag: 'stackable',
     image: browserImage,
-    desc: 'get those cool paid browsers! better features means a better web for you!',
+    desc: 'get those cool paid browsers! better features means a better web for you! :vertex-icon-light:',
     details: [
       'grant for buying paid browsers! for example: brave premium',
       '20$ of value!'
@@ -34,7 +34,7 @@ export const shopItems = [
     cost: '10 hours',
     tag: 'gear',
     image: mouseImage,
-    desc: 'an amazing mouse for serious clicking! click away and dominate with them!',
+    desc: 'an amazing mouse for serious clicking! click away and dominate with those clicks! :computer_mouse:',
     details: [
       'iconic ergonomic form with 9 customizable controls!',
       'hyperspeed wireless and bluetooth',
@@ -50,7 +50,7 @@ export const shopItems = [
     cost: '15 hours',
     tag: 'gear',
     image: keyboardImage,
-    desc: 'very cool keyboard! time to type faster than ever!',
+    desc: 'very cool keyboard! time to type faster than ever! :meow_code:',
     details: [
       'choose from a few colors to match your taste!',
       'can work with bluetooth, 2.4ghz wireless, or a direct usb wired connection!',
@@ -66,7 +66,7 @@ export const shopItems = [
     cost: '50 hours',
     tag: 'boss tier',
     image: monitorImage,
-    desc: 'cool, big monitor for all your browsing needs! more screens more tabs!',
+    desc: 'cool, big monitor for all your browsing needs! more screens more tabs! :earthquakyeyes:',
     details: [
       'best reward we got in the shop!',
       'super big 2560x1440 size',
