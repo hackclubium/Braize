@@ -2,21 +2,23 @@
 import Layout from '../layouts/Layout.astro';
 import Panel from '../components/Panel.astro';
 import TopNav from '../components/TopNav.astro';
+
+const submitUrl = 'https://forms.hackclub.com/t/osZz8LPx8Sus';
 ---
 
-<Layout title="Submit - Braize" description="Braize submissions are moving to Fillout.">
+<Layout title="Submit - Braize" description="Submit your Braize project.">
   <main class="page">
     <TopNav active="dashboard" />
 
-    <Panel id="submit" title="Submissions Under Construction" icon="folder" color="var(--hc-orange)" color2="var(--hc-yellow)">
+    <Panel id="submit" title="Submit Your Project" icon="folder" color="var(--hc-orange)" color2="var(--hc-yellow)">
       <p class="construction-note">
-        Project submissions are moving to a Fillout form backed by Airtable.
+        Project submissions now go through the Hack Club form.
       </p>
       <p>
-        For now: build your browser-adjacent project, keep proof somewhere safe,
-        and watch this page for the submit form.
+        Build your browser-adjacent project, keep proof somewhere safe, then send it in here.
       </p>
-      <a class="btn btn-accent" href="/Braize/shop/">See rewards</a>
+      <a class="btn btn-accent" href={submitUrl} target="_blank" rel="noopener">Open submission form</a>
+      <a class="btn" href="/Braize/shop/">See rewards</a>
     </Panel>
   </main>
 </Layout>

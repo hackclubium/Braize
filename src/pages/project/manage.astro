@@ -2,6 +2,8 @@
 import Layout from '../../layouts/Layout.astro';
 import Panel from '../../components/Panel.astro';
 import TopNav from '../../components/TopNav.astro';
+
+const submitUrl = 'https://forms.hackclub.com/t/osZz8LPx8Sus';
 ---
 
 <Layout title="Project Manager Under Construction - Braize" description="Braize project management is under construction.">
@@ -10,10 +12,10 @@ import TopNav from '../../components/TopNav.astro';
 
     <Panel id="manage" title="Project Manager Under Construction" icon="folder" color="var(--hc-blue)" color2="var(--hc-purple)">
       <p class="construction-note">
-        Project management is being replaced by a Fillout submission form backed by Airtable.
+        Project management is replaced by the Hack Club submission form.
       </p>
-      <p>No action needed here yet. Keep building, save proof, and submit once the new form lands.</p>
-      <a class="btn btn-accent" href="/Braize/dashboard/">Submission status</a>
+      <p>Keep building, save proof, then submit through the form.</p>
+      <a class="btn btn-accent" href={submitUrl} target="_blank" rel="noopener">Open submission form</a>
     </Panel>
   </main>
 </Layout>

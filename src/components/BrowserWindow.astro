@@ -2,6 +2,8 @@
 
 import PixelIcon from './PixelIcon.astro';
 
+const submitUrl = 'https://forms.hackclub.com/t/osZz8LPx8Sus';
+
 const tabs = [
   { href: '#about', label: 'About' },
   { href: '#what-counts', label: 'What Counts' },
@@ -57,11 +59,11 @@ const tabs = [
       <ul class="hero-checklist" aria-label="Braize summary">
         <li>build it in public</li>
         <li>keep notes and proof</li>
-        <li>submit through the form once it lands</li>
+        <li>submit through the form</li>
         <li>get reviewed for prizes</li>
       </ul>
       <div class="hero-actions">
-        <a class="btn btn-accent hero-primary" href="/Braize/dashboard/">Submission form</a>
+        <a class="btn btn-accent hero-primary" href={submitUrl} target="_blank" rel="noopener">Submit project</a>
         <a class="btn" href="/Braize/shop/">See prizes</a>
         <a class="btn" href="#how-it-works">How it works</a>
       </div>

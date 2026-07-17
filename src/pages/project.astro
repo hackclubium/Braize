@@ -2,6 +2,8 @@
 import Layout from '../layouts/Layout.astro';
 import Panel from '../components/Panel.astro';
 import TopNav from '../components/TopNav.astro';
+
+const submitUrl = 'https://forms.hackclub.com/t/osZz8LPx8Sus';
 ---
 
 <Layout title="Project Pages Under Construction - Braize" description="Braize project pages are under construction.">
@@ -10,10 +12,10 @@ import TopNav from '../components/TopNav.astro';
 
     <Panel id="project" title="Project Pages Under Construction" icon="folder" color="var(--hc-purple)" color2="var(--hc-blue)">
       <p class="construction-note">
-        Public project pages are paused while submissions move to Fillout and Airtable.
+        Public project pages are paused while submissions use the Hack Club form.
       </p>
-      <p>New submitted projects will come back once the new flow is ready.</p>
-      <a class="btn btn-accent" href="/Braize/dashboard/">Submission status</a>
+      <p>Submit finished projects through the form for now.</p>
+      <a class="btn btn-accent" href={submitUrl} target="_blank" rel="noopener">Open submission form</a>
     </Panel>
   </main>
 </Layout>
