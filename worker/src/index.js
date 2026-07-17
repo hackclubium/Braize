@@ -4,8 +4,11 @@ const HACKATIME_TOKEN_URL = 'https://hackatime.hackclub.com/oauth/token';
 const HACKATIME_ME_URL = 'https://hackatime.hackclub.com/api/v1/authenticated/me';
 const HACKATIME_PROJECTS_URL = 'https://hackatime.hackclub.com/api/v1/authenticated/projects';
 const SLACK_CONVERSATIONS_INFO_URL = 'https://slack.com/api/conversations.info';
+const SLACK_EMOJI_LIST_URL = 'https://slack.com/api/emoji.list';
 const BRAIZE_STATS_CACHE_KEY = 'braize_stats';
+const SLACK_EMOJI_CACHE_KEY = 'slack_emoji';
 const BRAIZE_STATS_TTL_MS = 55 * 60 * 1000;
+const SLACK_EMOJI_TTL_MS = 24 * 60 * 60 * 1000;
 
 function corsHeaders(env) {
   return {
@@ -243,6 +246,57 @@ async function writeBraizeStats(env, stats) {
   )
     .bind(BRAIZE_STATS_CACHE_KEY, JSON.stringify(stats))
     .run();
+}
+
+async function readSlackEmoji(env) {
+  const row = await env.DB.prepare(`SELECT value, updated_at FROM app_cache WHERE key = ?1`)
+    .bind(SLACK_EMOJI_CACHE_KEY)
+    .first();
+  if (!row) return null;
+
+  try {
+    return { emoji: JSON.parse(row.value), updatedAt: row.updated_at };
+  } catch {
+    return null;
+  }
+}
+
+async function writeSlackEmoji(env, emoji) {
+  await env.DB.prepare(
+    `INSERT INTO app_cache (key, value, updated_at)
+     VALUES (?1, ?2, datetime('now'))
+     ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`
+  )
+    .bind(SLACK_EMOJI_CACHE_KEY, JSON.stringify(emoji))
+    .run();
+}
+
+async function refreshSlackEmoji(env) {
+  if (!env.SLACK_BOT_TOKEN) return readSlackEmoji(env);
+
+  const res = await fetch(SLACK_EMOJI_LIST_URL, {
+    headers: { Authorization: `Bearer ${env.SLACK_BOT_TOKEN}` },
+  });
+  if (!res.ok) return readSlackEmoji(env);
+
+  const body = await res.json();
+  if (!body.ok || !body.emoji) return readSlackEmoji(env);
+
+  const emoji = Object.fromEntries(
+    Object.entries(body.emoji).filter(([, url]) => typeof url === 'string' && !url.startsWith('alias:'))
+  );
+  await writeSlackEmoji(env, emoji);
+  return readSlackEmoji(env);
+}
+
+async function handleSlackEmoji(env) {
+  const cached = await readSlackEmoji(env);
+  const updatedAt = cached?.updatedAt ? Date.parse(`${cached.updatedAt}Z`) : 0;
+  if (!cached || Date.now() - updatedAt > SLACK_EMOJI_TTL_MS) {
+    const fresh = await refreshSlackEmoji(env);
+    return json(fresh ?? { emoji: {}, updatedAt: null }, 200, env);
+  }
+  return json(cached, 200, env);
 }
 
 async function refreshBraizeStats(env) {
@@ -528,6 +582,10 @@ export default {
 
     if (pathname === '/public/stats' && request.method === 'GET') {
       return handlePublicStats(env);
+    }
+
+    if (pathname === '/public/slack-emoji' && request.method === 'GET') {
+      return handleSlackEmoji(env);
     }
 
     let match = pathname.match(/^\/public\/projects\/([^/]+)$/);

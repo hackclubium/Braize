@@ -68,6 +68,96 @@ const iconSvgs = {
     <slot />
 
     <script>
+      const shortcodeEmoji = {
+        fire: '🔥', tada: '🎉', sparkles: '✨', heart: '❤️', white_check_mark: '✅', x: '❌', warning: '⚠️', eyes: '👀', rocket: '🚀', skull: '💀', sob: '😭', joy: '😂', smile: '😄', sunglasses: '😎', thinking_face: '🤔', thumbsup: '👍', thumbsdown: '👎', clap: '👏', pray: '🙏', muscle: '💪', computer: '💻', keyboard: '⌨️', mouse: '🖱️', monitor: '🖥️', gift: '🎁', star: '⭐', zap: '⚡', bug: '🐛', memo: '📝', thread: '🧵', ship: '🚢'
+      };
+      const slackEmojiCacheKey = 'braize_slack_emoji';
+
+      async function loadEmojiMaps() {
+        const maps = [shortcodeEmoji, {}];
+
+        fetch('https://cdn.jsdelivr.net/npm/gemoji@8.1.0/db/emoji.json')
+          .then((res) => res.ok ? res.json() : [])
+          .then((rows) => {
+            for (const row of rows) {
+              for (const name of row.aliases || []) shortcodeEmoji[name] = row.emoji;
+            }
+            renderSlackShortcodes(document.body, maps);
+          })
+          .catch(() => {});
+
+        try {
+          const cached = JSON.parse(sessionStorage.getItem(slackEmojiCacheKey) || 'null');
+          if (cached && Date.now() - cached.ts < 24 * 60 * 60 * 1000) {
+            maps[1] = cached.emoji || {};
+            return maps;
+          }
+        } catch {}
+
+        try {
+          const res = await fetch('https://braize-worker.braize.workers.dev/public/slack-emoji');
+          if (!res.ok) return maps;
+          const body = await res.json();
+          maps[1] = body.emoji || {};
+          sessionStorage.setItem(slackEmojiCacheKey, JSON.stringify({ emoji: maps[1], ts: Date.now() }));
+        } catch {}
+
+        return maps;
+      }
+
+      function slackEmojiImg(name, url) {
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = `:${name}:`;
+        img.title = `:${name}:`;
+        img.className = 'slack-emoji';
+        img.loading = 'lazy';
+        return img;
+      }
+
+      function renderSlackShortcodes(root, maps) {
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+          acceptNode(node) {
+            if (!node.nodeValue.includes(':')) return NodeFilter.FILTER_REJECT;
+            const parent = node.parentElement;
+            if (!parent || parent.closest('script, style, code, pre, textarea, input')) return NodeFilter.FILTER_REJECT;
+            return NodeFilter.FILTER_ACCEPT;
+          }
+        });
+        const nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+
+        for (const node of nodes) {
+          const parts = node.nodeValue.split(/(:[a-z0-9_+-]+:)/gi);
+          if (parts.length === 1) continue;
+          const frag = document.createDocumentFragment();
+          let changed = false;
+
+          for (const part of parts) {
+            const match = part.match(/^:([a-z0-9_+-]+):$/i);
+            if (!match) {
+              frag.append(part);
+              continue;
+            }
+
+            const name = match[1];
+            if (maps[0][name]) {
+              frag.append(maps[0][name]);
+              changed = true;
+            } else if (maps[1][name]) {
+              frag.append(slackEmojiImg(name, maps[1][name]));
+              changed = true;
+            } else {
+              frag.append(part);
+            }
+          }
+
+          if (changed) node.replaceWith(frag);
+        }
+      }
+
+      loadEmojiMaps().then((maps) => renderSlackShortcodes(document.body, maps));
+
       // BSOD easter egg: triple-click anywhere on desktop (not on windows)
       let clickCount = 0;
       let clickTimer;
@@ -94,3 +184,12 @@ const iconSvgs = {
     </script>
   </body>
 </html>
+
+<style is:global>
+  .slack-emoji {
+    width: 1.25em;
+    height: 1.25em;
+    vertical-align: -0.25em;
+    object-fit: contain;
+  }
+</style>
