@@ -1,0 +1,99 @@
+---
+import Layout from '../layouts/Layout.astro';
+import TopNav from '../components/TopNav.astro';
+
+const submitUrl = 'https://forms.hackclub.com/t/osZz8LPx8Sus';
+
+const guides = [
+  {
+    title: '1. Pick a browser-adjacent idea',
+    body: 'Build something tied to browsing: extension, tab tool, browsing buddy, mini browser, web debugging toy, or weird experiment.',
+  },
+  {
+    title: '2. Keep proof while you build',
+    body: 'Save commits, screenshots, demo videos, notes, or progress posts. Reviewers need enough trail to see what you made.',
+  },
+  {
+    title: '3. Ship something openable',
+    body: 'A repo is good. A live demo, packaged extension, release zip, or install instructions are better. Make review easy.',
+  },
+  {
+    title: '4. Submit once it works',
+    body: 'Use the submission form. Include what it does, how to run it, proof links, and what prize tier you think fits.',
+  },
+];
+---
+
+<Layout title="Guides - Braize" description="How to build and submit for Braize.">
+  <main class="page guides-page">
+    <TopNav active="guides" />
+
+    <section class="window guides-shell">
+      <div class="title-bar" style="--title-color: var(--hc-yellow); --title-color-2: var(--hc-green);">
+        <div class="title-bar-text">Guides.exe</div>
+      </div>
+      <div class="guides-body">
+        <header class="guides-hero">
+          <p class="eyebrow">HOW TO BRAIZE</p>
+          <h1>Build, prove, submit.</h1>
+          <p>No account setup. The form is the source of truth.</p>
+          <a class="btn btn-accent" href={submitUrl} target="_blank" rel="noopener">Open submission form</a>
+        </header>
+
+        <div class="guide-grid">
+          {guides.map((guide) => (
+            <article class="guide-card">
+              <h2>{guide.title}</h2>
+              <p>{guide.body}</p>
+            </article>
+          ))}
+        </div>
+
+        <aside class="guide-note">
+          <strong>What to submit:</strong> project link, repo or files, proof trail, short explanation, and anything reviewers need to run it.
+        </aside>
+      </div>
+    </section>
+  </main>
+</Layout>
+
+<style is:global>
+  .guides-page { padding-top: 24px; }
+  .guides-shell { margin-top: 14px; }
+  .guides-body {
+    padding: 18px;
+    background: linear-gradient(135deg, rgba(241, 196, 15, 0.2), rgba(51, 214, 166, 0.14)), var(--win-face);
+  }
+  .guides-hero {
+    padding: 18px;
+    background: #050505;
+    color: #fff;
+    box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.25);
+  }
+  .guides-hero h1 {
+    margin: 0 0 8px;
+    font-size: clamp(2.6rem, 8vw, 5rem);
+    color: #fff;
+    text-shadow: 3px 3px 0 var(--hc-green), 6px 6px 0 rgba(241, 196, 15, 0.45);
+  }
+  .guide-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 16px;
+    margin-top: 18px;
+  }
+  .guide-card,
+  .guide-note {
+    padding: 16px;
+    background: #fffbe0;
+    box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-light-highlight), 6px 6px 0 rgba(0,0,0,0.16);
+  }
+  .guide-card:nth-child(2n) { background: #e9fbff; }
+  .guide-card h2 { margin-top: 0; }
+  .guide-note {
+    margin-top: 18px;
+    background: #ffd7df;
+    font-family: var(--font-hand);
+    font-size: 1.15rem;
+  }
+</style>

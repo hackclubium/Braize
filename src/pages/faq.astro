@@ -4,19 +4,19 @@ import TopNav from '../components/TopNav.astro';
 import PrizeFaq from '../components/PrizeFaq.astro';
 ---
 
-<Layout title="Help - Braize" description="Braize prize rules and common questions.">
+<Layout title="FAQ - Braize" description="Braize questions and prize rules.">
   <main class="page help-page">
-    <TopNav active="help" />
+    <TopNav active="faq" />
 
     <section class="window help-shell">
       <div class="title-bar" style="--title-color: var(--hc-purple); --title-color-2: var(--hc-red);">
-        <div class="title-bar-text">Help.exe</div>
+        <div class="title-bar-text">FAQ.exe</div>
       </div>
       <div class="help-body">
         <header class="help-hero">
           <p class="eyebrow">RULES + FAQ</p>
           <h1>What counts?</h1>
-          <p>Short version: make browser-adjacent stuff, keep proof, ship something people can open.</p>
+          <p>Short version: make browser-adjacent stuff, keep proof, submit something people can open.</p>
         </header>
         <PrizeFaq />
       </div>
@@ -25,19 +25,12 @@ import PrizeFaq from '../components/PrizeFaq.astro';
 </Layout>
 
 <style is:global>
-  .help-page {
-    padding-top: 24px;
-  }
-
-  .help-shell {
-    margin-top: 14px;
-  }
-
+  .help-page { padding-top: 24px; }
+  .help-shell { margin-top: 14px; }
   .help-body {
     padding: 18px;
     background: linear-gradient(135deg, rgba(166, 51, 214, 0.18), rgba(236, 55, 80, 0.14)), var(--win-face);
   }
-
   .help-hero {
     position: relative;
     padding: 18px;
@@ -46,7 +39,6 @@ import PrizeFaq from '../components/PrizeFaq.astro';
     box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.25);
     margin-bottom: 18px;
   }
-
   .help-hero::after {
     content: 'if confused: ask, do not overthink';
     position: absolute;
@@ -62,7 +54,6 @@ import PrizeFaq from '../components/PrizeFaq.astro';
     box-shadow: 4px 4px 0 rgba(0,0,0,0.15);
     transform: rotate(-2deg);
   }
-
   .help-hero h1 {
     margin: 0;
     font-size: clamp(2.8rem, 9vw, 5.2rem);
