@@ -1,6 +1,6 @@
 ---
 interface Props {
-  active: 'dashboard' | 'explore' | 'shop' | 'orders' | 'help';
+  active: 'dashboard' | 'shop' | 'orders' | 'help';
   crumb?: string;
 }
 
@@ -9,7 +9,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
 const tabs = [
   { key: 'dashboard', label: 'Submit', href: `${base}/dashboard/` },
-  { key: 'explore', label: 'Explore', href: `${base}/explore/` },
   { key: 'shop', label: 'Shop', href: `${base}/shop/` },
   { key: 'orders', label: 'Status', href: `${base}/orders/` },
   { key: 'help', label: 'Help', href: `${base}/help/` },
