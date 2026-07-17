@@ -1,49 +1,9 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import TopNav from '../components/TopNav.astro';
-import mouseImage from '../assets/mouse.jpg';
-import chromeImage from '../assets/chrome-web-store.webp';
-import browserImage from '../assets/browser.jpg';
-import keyboardImage from '../assets/keyboard.jpg';
-import monitorImage from '../assets/monitor.jpg';
+import { shopItems } from '../data/shopItems';
 
-const items = [
-  {
-    name: 'Chrome Extension License',
-    cost: '1 hour',
-    tag: 'extension',
-    image: chromeImage,
-    desc: 'make your own extension and launch it on the chrome web store :O',
-  },
-  {
-    name: 'Browser Subscription Grant',
-    cost: '5 hours',
-    tag: 'stackable',
-    image: browserImage,
-    desc: 'get those cool paid browsers! better features means a better web for you!',
-  },
-  {
-    name: 'Mouse',
-    cost: '10 hours',
-    tag: 'gear',
-    image: mouseImage,
-    desc: 'an amazing mouse for serious clicking! click away and dominate with those clicks!',
-  },
-  {
-    name: 'Keyboard',
-    cost: '15 hours',
-    tag: 'gear',
-    image: keyboardImage,
-    desc: 'very cool keyboard! time to type faster than ever!',
-  },
-  {
-    name: 'Monitor',
-    cost: '50 hours',
-    tag: 'boss tier',
-    image: monitorImage,
-    desc: 'cool, big monitor for all your browsing needs! more screens more tabs!',
-  },
-];
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
 <Layout title="Shop - Braize" description="Braize prize tiers.">
@@ -62,14 +22,14 @@ const items = [
         </header>
 
         <div class="shop-grid">
-          {items.map((item) => (
+          {shopItems.map((item) => (
             <article class="shop-card">
               <div class="shop-tag">{item.tag}</div>
               <img src={item.image.src} alt="" class="shop-image" loading="lazy" />
               <h2>{item.name}</h2>
               <p>{item.desc}</p>
               <div class="shop-cost">{item.cost}</div>
-              <button type="button" class="btn-mini" disabled>Review decides</button>
+              <a href={`${base}/shop/${item.slug}/`} class="btn-mini">More info</a>
             </article>
           ))}
         </div>
@@ -168,9 +128,8 @@ const items = [
     margin: 0;
   }
 
-  .shop-card button {
+  .shop-card .btn-mini {
     align-self: end;
-    opacity: 0.7;
-    cursor: not-allowed;
+    width: max-content;
   }
 </style>
