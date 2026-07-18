@@ -4,11 +4,11 @@ title: "Browser Engine Part 1: DOM + CSS"
 description: Beginner-friendly DOM and CSS parsing guide inspired by Vertex.
 ---
 
-# Part 1: DOM + CSS :abc-blahaj:
+# Part 1: DOM + CSS :ultrafastparrot:
 
 First mission: turn a string of HTML into a tree, then attach styles to that tree.
 
-Do **not** draw pixels yet. Get the data shape right first.
+Do **not** draw pixels yet. Get the data shape right first. :yesyes:
 
 ## 1. Make a DOM Node
 
@@ -35,7 +35,7 @@ Element node has tag name + attributes + children
 Text node has text
 ```
 
-That is enough.
+That is enough. :yay:
 
 Your DOM for this:
 
@@ -79,7 +79,7 @@ while not end:
     append to current
 ```
 
-This is not full HTML5 parsing. Good. You are building first pixels, not surviving every broken webpage ever. :ultrafastparrot:
+This is not full HTML5 parsing. Good. You are building first pixels, not surviving every broken webpage ever. :tbh_excited:
 
 ## 3. Pull CSS Out Of `<style>`
 
@@ -174,7 +174,7 @@ div class=card background=yellow width=300 padding=12
   text "browser pixels"
 ```
 
-This is your first win. If this prints correctly, layout becomes way easier. :60fpsparrot:
+This is your first win. If this prints correctly, layout becomes way easier! :happy-pep:
 
 ## Tiny Test File
 
