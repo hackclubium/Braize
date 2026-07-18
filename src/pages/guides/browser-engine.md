@@ -4,9 +4,9 @@ title: Browser Engine Guide
 description: A casual beginner-friendly browser engine guide with examples inspired by Vertex.
 ---
 
-# Browser Engine Guide :8bit-orpheus:
+# Browser Engine Guide :meow_code:
 
-Want to build a browser engine? Sick. Also: do **not** try to build Chrome first week. :abc-blahaj:
+Want to build a browser engine? :eyes_wtf: Sick. Also: do **not** try to build Chrome first week. 
 
 Browser engines are scary because real ones are huge. But the tiny version is pretty understandable:
 
@@ -22,7 +22,7 @@ HTML text
 
 That is the whole game. Everything else is extra chaos.
 
-This guide pulls ideas from [Vertex](https://github.com/hackclubium/Vertex), a from-scratch C++ browser engine. Vertex is way bigger than what you need, but its structure is useful to copy in tiny form.
+This guide pulls ideas from [Vertex](https://github.com/hackclubium/Vertex) :vertex-icon-light:, a from-scratch C++ browser engine. Vertex is way bigger than what you need, but its structure is useful to copy in tiny form.
 
 ## The Tiny Goal
 
@@ -41,7 +41,7 @@ Your first engine should render this:
 <div class="card">browser pixels :fire:</div>
 ```
 
-If you can parse it, style it, lay it out, and draw boxes/text, you have a real browser-engine project.
+If you can parse it, style it, lay it out, and draw boxes/text, you have a real browser-engine project. :yay:
 
 ## Vertex Map
 
@@ -57,7 +57,7 @@ Here is how Vertex names the pieces:
 | Debug tool | `tools/dump_layout.cpp` | You can test layout without a GUI |
 | Fixture | `tests/fixtures/render_probe/stacking.in.html` | Tiny HTML files make great tests |
 
-You do not need all Vertex features. Copy the shape, not the size. :absolute_fire:
+You do not need all Vertex features. Copy the shape, not the size.
 
 ## Recommended Files
 
@@ -77,7 +77,7 @@ examples/
 README.md
 ```
 
-No plugin system. No engine abstraction. No “browser core manager factory”. Tiny pile of files. Good.
+No plugin system. No engine abstraction. No “browser core manager factory”. Tiny pile of files. Good. :checked-t:
 
 ## Guide Parts
 
@@ -100,7 +100,7 @@ Skip these until pixels work:
 - security sandboxing
 - videos/audio
 
-That stuff matters in real browsers. For your first Braize engine, it is how you drown. :this-is-fine:
+That stuff matters in real browsers. For your first Braize engine, it is how you drown. :noooovanish:
 
 ## Best Submission Shape
 
@@ -117,4 +117,6 @@ Great README sentence:
 
 > This engine supports basic HTML elements, class/tag/id CSS selectors, block layout, colors, backgrounds, padding, and text painting. It does not support JS, networking, forms, or flexbox yet.
 
-That is honest and reviewable. :party-dinosaur:
+That is honest and reviewable. :happi:
+
+Now go and make your own browser engine!
