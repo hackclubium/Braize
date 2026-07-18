@@ -74,4 +74,28 @@ const { frontmatter } = Astro.props;
     line-height: 1.55;
     white-space: pre;
   }
+  .guide-doc-body table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    margin: 18px 0;
+    background: #fff;
+    box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-light-highlight), 6px 6px 0 rgba(0,0,0,0.16);
+  }
+  .guide-doc-body th,
+  .guide-doc-body td {
+    padding: 9px 12px;
+    border: 2px solid #111;
+    text-align: left;
+    vertical-align: top;
+  }
+  .guide-doc-body th {
+    font-family: var(--font-display);
+    background: #050505;
+    color: var(--hc-yellow);
+  }
+  .guide-doc-body tr:nth-child(even) td {
+    background: #e9fbff;
+  }
 </style>
