@@ -1,0 +1,112 @@
+---
+import PixelIcon from './PixelIcon.astro';
+
+const HACKCLUB_AUTH_CLIENT_ID = '5d55fc042761a61272e88549fc0dbadf';
+const WORKER_URL = 'https://braize-worker.braize.workers.dev';
+const REDIRECT_URI = 'https://hackclubium.github.io/Braize/';
+---
+
+<div class="auth-block">
+  <div class="auth-row">
+    <PixelIcon name="plug" color="var(--hc-blue)" />
+    <div class="auth-info">
+      <strong>Hack Club Account</strong>
+      <p class="auth-status" id="hc-status">Not connected.</p>
+    </div>
+    <button type="button" class="btn" id="hc-connect-btn">Connect</button>
+  </div>
+</div>
+
+<script define:vars={{ HACKCLUB_AUTH_CLIENT_ID, WORKER_URL, REDIRECT_URI }}>
+  const hcStatusEl = document.getElementById('hc-status');
+  const hcConnectBtn = document.getElementById('hc-connect-btn');
+
+  function renderHcStatus() {
+    const stored = localStorage.getItem('braize_hc_account');
+    if (stored) {
+      const { name, verificationStatus, yswsEligible } = JSON.parse(stored);
+      const idVerified = verificationStatus === 'verified';
+      hcStatusEl.textContent = `Connected as ${name ?? 'Hack Clubber'}. ID: ${
+        idVerified ? 'Verified' : verificationStatus ?? 'unverified'
+      }. YSWS eligible: ${yswsEligible ? 'Yes' : 'No'}.`;
+      hcConnectBtn.textContent = 'Reconnect';
+    } else {
+      hcStatusEl.textContent = 'Not connected.';
+      hcConnectBtn.textContent = 'Connect';
+    }
+  }
+
+  function startOauth() {
+    const state = `hackclub:${crypto.randomUUID()}`;
+    sessionStorage.setItem('braize_oauth_state', state);
+    const params = new URLSearchParams({
+      client_id: HACKCLUB_AUTH_CLIENT_ID,
+      redirect_uri: REDIRECT_URI,
+      response_type: 'code',
+      scope: 'openid name verification_status slack_id',
+      state,
+    });
+    window.location.href = `https://auth.hackclub.com/oauth/authorize?${params.toString()}`;
+  }
+
+  async function handleOauthReturn() {
+    const url = new URL(window.location.href);
+    const code = url.searchParams.get('code');
+    const state = url.searchParams.get('state');
+    if (!code) return;
+
+    const expectedState = sessionStorage.getItem('braize_oauth_state');
+    sessionStorage.removeItem('braize_oauth_state');
+    url.searchParams.delete('code');
+    url.searchParams.delete('state');
+    window.history.replaceState({}, '', url.toString());
+
+    if (!state || state !== expectedState) {
+      hcStatusEl.textContent = 'Login failed (state mismatch). Try again.';
+      return;
+    }
+
+    hcStatusEl.textContent = 'Finishing login...';
+    try {
+      const res = await fetch(`${WORKER_URL}/oauth/hackclub`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+      });
+      if (!res.ok) {
+        hcStatusEl.textContent = 'Login failed. Try again.';
+        return;
+      }
+      localStorage.setItem('braize_hc_account', JSON.stringify(await res.json()));
+      renderHcStatus();
+    } catch {
+      hcStatusEl.textContent = 'Login failed. Try again.';
+    }
+  }
+
+  hcConnectBtn.addEventListener('click', startOauth);
+  renderHcStatus();
+  handleOauthReturn();
+</script>
+
+<style>
+  .auth-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: #fff;
+    padding: 12px;
+    box-shadow: inset -1px -1px var(--win-shadow), inset 1px 1px var(--win-dark-shadow);
+  }
+  .auth-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .auth-status {
+    margin: 2px 0 0;
+    font-size: 0.85rem;
+  }
+  .auth-row .btn {
+    flex-shrink: 0;
+  }
+</style>
