@@ -8,7 +8,7 @@ const REDIRECT_URI = 'https://hackclubium.github.io/Braize/';
 
 <div class="auth-block">
   <div class="auth-row">
-    <PixelIcon name="plug" color="var(--hc-blue)" />
+    <PixelIcon name="hackclub" />
     <div class="auth-info">
       <strong>Hack Club Account</strong>
       <p class="auth-status" id="hc-status">Not connected.</p>
@@ -105,6 +105,13 @@ const REDIRECT_URI = 'https://hackclubium.github.io/Braize/';
   .auth-status {
     margin: 2px 0 0;
     font-size: 0.85rem;
+  }
+  .auth-row .pixel-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    image-rendering: pixelated;
+    margin-top: 2px;
   }
   .auth-row .btn {
     flex-shrink: 0;
