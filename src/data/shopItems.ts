@@ -46,7 +46,7 @@ export const shopItems = [
   },
   {
     slug: 'keyboard',
-    name: 'AULD F75 Wireless Mechanical Keyboard',
+    name: 'AULA F75 Wireless Mechanical Keyboard',
     cost: '15 hours',
     tag: 'gear',
     image: keyboardImage,
