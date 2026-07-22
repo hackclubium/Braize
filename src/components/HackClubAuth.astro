@@ -12,6 +12,10 @@ const REDIRECT_URI = 'https://hackclubium.github.io/Braize/';
     <div class="auth-info">
       <strong>Hack Club Account</strong>
       <p class="auth-status" id="hc-status">Not connected.</p>
+      <form class="name-form" id="hc-name-form" hidden>
+        <input id="hc-name-input" name="display_name" maxlength="60" placeholder="Display name" />
+        <button type="submit" class="btn btn-mini">Save name</button>
+      </form>
     </div>
     <button type="button" class="btn" id="hc-connect-btn">Connect</button>
   </div>
@@ -20,18 +24,36 @@ const REDIRECT_URI = 'https://hackclubium.github.io/Braize/';
 <script define:vars={{ HACKCLUB_AUTH_CLIENT_ID, WORKER_URL, REDIRECT_URI }}>
   const hcStatusEl = document.getElementById('hc-status');
   const hcConnectBtn = document.getElementById('hc-connect-btn');
+  const hcNameForm = document.getElementById('hc-name-form');
+  const hcNameInput = document.getElementById('hc-name-input');
+
+  function getStoredAccount() {
+    const stored = localStorage.getItem('braize_hc_account');
+    return stored ? JSON.parse(stored) : null;
+  }
+
+  function saveStoredAccount(account) {
+    localStorage.setItem('braize_hc_account', JSON.stringify(account));
+  }
+
+  function displayName(account) {
+    return account?.displayName ?? account?.display_name ?? account?.name ?? 'Hack Clubber';
+  }
 
   function renderHcStatus() {
-    const stored = localStorage.getItem('braize_hc_account');
-    if (stored) {
-      const { name, verificationStatus, yswsEligible } = JSON.parse(stored);
+    const account = getStoredAccount();
+    if (account) {
+      const { verificationStatus, yswsEligible } = account;
       const idVerified = verificationStatus === 'verified';
-      hcStatusEl.textContent = `Connected as ${name ?? 'Hack Clubber'}. ID: ${
+      hcStatusEl.textContent = `Connected as ${displayName(account)}. ID: ${
         idVerified ? 'Verified' : verificationStatus ?? 'unverified'
       }. YSWS eligible: ${yswsEligible ? 'Yes' : 'No'}.`;
+      hcNameInput.value = account.displayName ?? account.display_name ?? '';
+      hcNameForm.hidden = false;
       hcConnectBtn.textContent = 'Reconnect';
     } else {
       hcStatusEl.textContent = 'Not connected.';
+      hcNameForm.hidden = true;
       hcConnectBtn.textContent = 'Connect';
     }
   }
@@ -77,15 +99,56 @@ const REDIRECT_URI = 'https://hackclubium.github.io/Braize/';
         hcStatusEl.textContent = 'Login failed. Try again.';
         return;
       }
-      localStorage.setItem('braize_hc_account', JSON.stringify(await res.json()));
+      saveStoredAccount(await res.json());
       renderHcStatus();
     } catch {
       hcStatusEl.textContent = 'Login failed. Try again.';
     }
   }
 
+  async function refreshMe() {
+    const account = getStoredAccount();
+    if (!account?.sessionToken) return;
+
+    try {
+      const res = await fetch(`${WORKER_URL}/me`, {
+        headers: { Authorization: `Bearer ${account.sessionToken}` },
+      });
+      if (!res.ok) return;
+      const { user } = await res.json();
+      saveStoredAccount({ ...account, displayName: user.display_name, name: user.name });
+      renderHcStatus();
+    } catch {}
+  }
+
+  async function saveName(event) {
+    event.preventDefault();
+    const account = getStoredAccount();
+    if (!account?.sessionToken) return;
+
+    hcStatusEl.textContent = 'Saving name...';
+    try {
+      const res = await fetch(`${WORKER_URL}/me`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${account.sessionToken}`,
+        },
+        body: JSON.stringify({ display_name: hcNameInput.value }),
+      });
+      if (!res.ok) throw new Error('name save failed');
+      const { user } = await res.json();
+      saveStoredAccount({ ...account, displayName: user.display_name, name: user.name });
+      renderHcStatus();
+    } catch {
+      hcStatusEl.textContent = 'Name save failed. Reconnect, then try again.';
+    }
+  }
+
   hcConnectBtn.addEventListener('click', startOauth);
+  hcNameForm.addEventListener('submit', saveName);
   renderHcStatus();
+  refreshMe();
   handleOauthReturn();
 </script>
 
@@ -105,6 +168,21 @@ const REDIRECT_URI = 'https://hackclubium.github.io/Braize/';
   .auth-status {
     margin: 2px 0 0;
     font-size: 0.85rem;
+  }
+  .name-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .name-form input {
+    min-width: 180px;
+    flex: 1;
+    padding: 7px 8px;
+    border: 0;
+    font: inherit;
+    background: #fffbe0;
+    box-shadow: inset -1px -1px var(--win-light-highlight), inset 1px 1px var(--win-dark-shadow);
   }
   .auth-row .btn {
     flex-shrink: 0;
