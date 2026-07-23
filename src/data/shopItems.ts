@@ -32,7 +32,7 @@ export const shopItems = [
   {
     slug: 'mouse',
     name: 'Razer Basilik V3 X HyperSpeed Mouse',
-    cost: '10 hours',
+    cost: '15 hours',
     tag: 'gear',
     image: mouseImage,
     desc: 'an amazing mouse for serious clicking! click away and dominate with those clicks! :computer_mouse:',
@@ -48,7 +48,7 @@ export const shopItems = [
   {
     slug: 'keyboard',
     name: 'AULA F75 Wireless Mechanical Keyboard',
-    cost: '15 hours',
+    cost: '25 hours',
     tag: 'gear',
     image: keyboardImage,
     desc: 'very cool keyboard! time to type faster than ever! :meow_code:',
@@ -64,7 +64,7 @@ export const shopItems = [
   {
     slug: 'monitor',
     name: 'AOC Q27G3XMN Gaming Monitor',
-    cost: '50 hours',
+    cost: '75 hours',
     tag: 'boss tier',
     image: monitorImage,
     desc: 'cool, big monitor for all your browsing needs! more screens more tabs! :earthquakyeyes:',
@@ -80,7 +80,7 @@ export const shopItems = [
   {
     slug: '16gb-ram',
     name: 'COSAIR Vengeance DDR5 16GB (2x8GB) RAM',
-    cost: '50 hours',
+    cost: '75 hours',
     tag: 'boss tier',
     image: ramImage,
     desc: 'extremely hot and fast DDR5! enough to power a good computer :thonkage:',
