@@ -3,6 +3,7 @@ import chromeImage from '../assets/chrome-web-store.webp';
 import browserImage from '../assets/browser.jpg';
 import keyboardImage from '../assets/keyboard.jpg';
 import monitorImage from '../assets/monitor.jpg';
+import ramImage from '../assets/ram.webp';
 
 export const shopItems = [
   {
@@ -68,12 +69,27 @@ export const shopItems = [
     image: monitorImage,
     desc: 'cool, big monitor for all your browsing needs! more screens more tabs! :earthquakyeyes:',
     details: [
-      'best reward we got in the shop!',
+      'one of the best rewards we got in the shop!',
       'super big 2560x1440 size',
       'legendarily fast 1ms gray-to-gray and 180 hertz refresh rate!',
       'impressive 134% srgb color gamut, 96% dci-p3 coverage, and vesa displayhdr 1000!',
       'mini-led backlight with 336 local dimming zones',
       '81-key 75% layout compact!'
+    ],
+  },
+  {
+    slug: '16gb-ram',
+    name: 'COSAIR Vengeance DDR5 16GB (2x8GB) RAM',
+    cost: '50 hours',
+    tag: 'boss tier',
+    image: ramImage,
+    desc: 'extremely hot and fast DDR5! enough to power a good computer :thonkage:',
+    details: [
+      'one of the best rewards we got in the shop!',
+      'nice, gray color with a cool box :D',
+      'super fast 5200 Mhz transfer speed!',
+      'embedded with the CORSAIR iCUE software for all your monitor and control needs',
+      'some other specs: CL40 AMD EXPO Intel XMP 3.0'
     ],
   },
 ];
